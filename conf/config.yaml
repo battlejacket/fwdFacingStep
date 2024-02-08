@@ -22,23 +22,26 @@ defaults :
   - _self_
 scheduler:
   decay_rate: 0.95
-  decay_steps: 4000
+  decay_steps: 10000
 
-network_dir : "./restart"
+network_dir : "./first"
 initialization_network_dir : ""
+
+optimizer: 
+  lr: 1e-3                      # Change this based on arch chosen
 
 training:
   rec_validation_freq: 1000
   rec_inference_freq: 2000
   rec_monitor_freq: 1000
   rec_constraint_freq: 2000
-  max_steps : 10000
+  max_steps : 50000
 
 batch_size:
-  TopWall: 1000
+  inlet: 1000
+  outlet: 1000
   NoSlip: 1000
   Interior: 4000
-  interface: 1000
 
 graph:
   func_arch: true
