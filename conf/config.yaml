@@ -24,7 +24,7 @@ scheduler:
   decay_rate: 0.95
   decay_steps: 10000
 
-network_dir : "./first"
+network_dir : "./nDim"
 initialization_network_dir : ""
 
 optimizer: 
@@ -35,13 +35,15 @@ training:
   rec_inference_freq: 2000
   rec_monitor_freq: 1000
   rec_constraint_freq: 2000
-  max_steps : 50000
+  max_steps : 500000
 
 batch_size:
-  inlet: 1000
-  outlet: 1000
-  NoSlip: 1000
-  Interior: 4000
+  inlet: 128
+  outlet: 128
+  NoSlip: 1024
+  Interior: 2048
+  InteriorHR: 3072
+  integralContinuity: 128
 
 graph:
   func_arch: true
