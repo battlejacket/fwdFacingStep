@@ -30,8 +30,8 @@ profiler:
   start_step: 0
   end_step: 100
   name: nvtx
-network_dir: ./nDim
-initialization_network_dir: ''
+network_dir: ./obs2
+initialization_network_dir: ./obs
 save_filetypes: vtk
 summary_histograms: false
 jit: true
@@ -67,7 +67,7 @@ optimizer:
     compute_gradients: adam_compute_gradients
     apply_gradients: adam_apply_gradients
   _target_: torch.optim.Adam
-  lr: 0.001
+  lr: 0.0005
   betas:
   - 0.9
   - 0.999
@@ -78,12 +78,13 @@ scheduler:
   _target_: custom
   _name_: tf.ExponentialLR
   decay_rate: 0.95
-  decay_steps: 10000
+  decay_steps: 5000
 batch_size:
-  inlet: 128
-  outlet: 128
-  NoSlip: 1024
-  Interior: 2048
-  InteriorHR: 3072
-  integralContinuity: 128
+  inlet: 256
+  outlet: 256
+  NoSlip: 2048
+  Interior: 6000
+  InteriorHR: 4096
+  integralContinuity: 256
+  batchPerEpoch: 1000
 custom: ???

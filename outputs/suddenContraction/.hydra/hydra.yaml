@@ -94,7 +94,7 @@ hydra:
     task: []
   job:
     name: suddenContraction
-    chdir: true
+    chdir: null
     override_dirname: ''
     id: ???
     num: ???
