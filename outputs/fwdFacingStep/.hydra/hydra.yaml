@@ -94,7 +94,7 @@ hydra:
     task: []
   job:
     name: fwdFacingStep
-    chdir: true
+    chdir: null
     override_dirname: ''
     id: ???
     num: ???

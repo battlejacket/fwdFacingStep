@@ -24,16 +24,16 @@ scheduler:
   decay_rate: 0.95
   decay_steps: 5000
 
-network_dir : "./obs2"
-initialization_network_dir : "./obs"
+network_dir : "./data"
+initialization_network_dir : "./first"
 
 optimizer: 
-  lr: 5e-4                      # Change this based on arch chosen
+  lr: 5e-5                      # Change this based on arch chosen
 
 training:
   rec_validation_freq: 1000
-  rec_inference_freq: 2000
-  rec_monitor_freq: 1000
+  rec_inference_freq: 1000
+  rec_monitor_freq: 2000
   rec_constraint_freq: 2000
   # max_steps : 200000
   max_steps : 500000
@@ -41,9 +41,12 @@ training:
 batch_size:
   inlet: 256
   outlet: 256
-  NoSlip: 2048
-  Interior: 6144
-  # InteriorHR: 4096
+  NoSlipHR: 2048
+  NoSlip: 1024
+  # Interior: 1024
+  Interior: 2048
+  # InteriorHR: 2048
+  InteriorHR: 3072
   integralContinuity: 256
   batchPerEpoch: 1000
 
