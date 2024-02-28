@@ -13,21 +13,29 @@ Re = Symbol("Re")
 x, y = Symbol("x"), Symbol("y")
 Lo, Ho = Symbol("Lo"), Symbol("Ho")
 
-def dataConstraint(file_path, ansysVarNames, modulusVarNames, nodes, scales, batches, param=False, nonDim=None, additionalConstraints=None):
+def dataConstraint(file_path, ansysVarNames, modulusVarNames, nodes, scales, batches, skiprows=1, param=False, nonDim=None, additionalConstraints=None):
     if os.path.exists(to_absolute_path(file_path)):
         mapping = {}
         for ansVarName, modulusVarName in zip(ansysVarNames, modulusVarNames):
             mapping[ansVarName] = modulusVarName
 
-        openfoam_var = csv_to_dict(to_absolute_path(file_path), mapping, skiprows=6)
+        openfoam_var = csv_to_dict(to_absolute_path(file_path), mapping, skiprows=skiprows)
 
         if param:
-            # parameters = file_path.split("_")[2].split(".")[0].replace(",", ".").split("-")
+            parameters = file_path.split("_")[1].split(".")[0].replace(",", ".").split("-")
+
             parameterRanges = {
-                Re: 1213,  
-                Lo: 0.5,
-                Ho: 0.05,
-            }                  
+                Re: float(parameters[0]),  
+                Lo: float(parameters[1]),
+                Ho: float(parameters[2]),
+            } 
+
+
+            # parameterRanges = {
+            #     Re: 1213,
+            #     Lo: 0.5,
+            #     Ho: 0.05,
+            # }                  
         
             openfoam_var.update({"Re": np.full_like(openfoam_var["x"], parameterRanges[Re])})
             openfoam_var.update({"Lo": np.full_like(openfoam_var["x"], parameterRanges[Lo])})
