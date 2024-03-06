@@ -24,11 +24,11 @@ scheduler:
   decay_rate: 0.95
   decay_steps: 5000
 
-network_dir : "./data"
-initialization_network_dir : "./first"
+network_dir : "./dataFull"
+initialization_network_dir : "./"
 
 optimizer: 
-  lr: 1e-3                      # Change this based on arch chosen
+  lr: 1e-4                   # Change this based on arch chosen
 
 training:
   rec_validation_freq: 1000
@@ -36,17 +36,17 @@ training:
   rec_monitor_freq: 2000
   rec_constraint_freq: 1000
   # max_steps : 200000
-  max_steps : 500000
+  max_steps : 1000000
 
 batch_size:
-  inlet: 256
-  outlet: 256
-  NoSlipHR: 2048
+  inlet: 128
+  outlet: 128
+  NoSlipHR: 1024
   NoSlip: 1024
   # Interior: 1024
-  Interior: 2048
+  Interior: 3072
   # InteriorHR: 2048
-  InteriorHR: 3072
+  InteriorHR: 2048
   integralContinuity: 256
   batchPerEpoch: 1000
 

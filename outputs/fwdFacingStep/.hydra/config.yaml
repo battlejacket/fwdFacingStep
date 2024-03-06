@@ -1,5 +1,5 @@
 training:
-  max_steps: 500000
+  max_steps: 1000000
   grad_agg_freq: 1
   rec_results_freq: 1000
   rec_validation_freq: 1000
@@ -30,8 +30,8 @@ profiler:
   start_step: 0
   end_step: 100
   name: nvtx
-network_dir: ./data
-initialization_network_dir: ./first
+network_dir: ./dataFull
+initialization_network_dir: ./
 save_filetypes: vtk
 summary_histograms: false
 jit: true
@@ -67,7 +67,7 @@ optimizer:
     compute_gradients: adam_compute_gradients
     apply_gradients: adam_apply_gradients
   _target_: torch.optim.Adam
-  lr: 0.001
+  lr: 0.0001
   betas:
   - 0.9
   - 0.999
@@ -80,12 +80,12 @@ scheduler:
   decay_rate: 0.95
   decay_steps: 5000
 batch_size:
-  inlet: 256
-  outlet: 256
-  NoSlipHR: 2048
+  inlet: 128
+  outlet: 128
+  NoSlipHR: 1024
   NoSlip: 1024
-  Interior: 2048
-  InteriorHR: 3072
+  Interior: 3072
+  InteriorHR: 2048
   integralContinuity: 256
   batchPerEpoch: 1000
 custom: ???

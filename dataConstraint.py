@@ -77,3 +77,5 @@ def dataConstraint(file_path, ansysVarNames, modulusVarNames, nodes, scales, bat
             batch_size=int(openfoam_var['x'].size/batches),
             )
         return dataConstraint
+    else:
+        print("Missing Data: ", file_path)

@@ -1,0 +1,212 @@
+<CustomFilterDefinitions>
+  <CustomProxyDefinition name="P2_Delaunay" group="filters">
+    <CompoundSourceProxy id="34184" servers="1">
+      <Proxy group="filters" type="Calculator" id="33461" servers="1" compound_name="Calculator1">
+        <Property name="AttributeType" id="33461.AttributeType" number_of_elements="1">
+          <Element index="0" value="0"/>
+          <Domain name="enum" id="33461.AttributeType.enum">
+            <Entry value="0" text="Point Data"/>
+            <Entry value="1" text="Cell Data"/>
+          </Domain>
+        </Property>
+        <Property name="CoordinateResults" id="33461.CoordinateResults" number_of_elements="1">
+          <Element index="0" value="0"/>
+          <Domain name="bool" id="33461.CoordinateResults.bool"/>
+        </Property>
+        <Property name="Function" id="33461.Function" number_of_elements="1">
+          <Element index="0" value="pred_velocity-true_velocity"/>
+        </Property>
+        <Property name="FunctionParserType" id="33461.FunctionParserType" number_of_elements="1">
+          <Element index="0" value="1"/>
+        </Property>
+        <Property name="Input" id="33461.Input" number_of_elements="1">
+          <Proxy value="32976" output_port="0"/>
+          <Domain name="groups" id="33461.Input.groups"/>
+          <Domain name="input_array" id="33461.Input.input_array"/>
+          <Domain name="input_type" id="33461.Input.input_type"/>
+        </Property>
+        <Property name="ReplaceInvalidValues" id="33461.ReplaceInvalidValues" number_of_elements="1">
+          <Element index="0" value="1"/>
+          <Domain name="bool" id="33461.ReplaceInvalidValues.bool"/>
+        </Property>
+        <Property name="ReplacementValue" id="33461.ReplacementValue" number_of_elements="1">
+          <Element index="0" value="0"/>
+          <Domain name="range" id="33461.ReplacementValue.range"/>
+        </Property>
+        <Property name="ResultArrayName" id="33461.ResultArrayName" number_of_elements="1">
+          <Element index="0" value="diff_velocity"/>
+        </Property>
+        <Property name="ResultArrayType" id="33461.ResultArrayType" number_of_elements="1">
+          <Element index="0" value="11"/>
+          <Domain name="enum" id="33461.ResultArrayType.enum">
+            <Entry value="2" text="Char"/>
+            <Entry value="15" text="Signed Char"/>
+            <Entry value="3" text="Unsigned Char"/>
+            <Entry value="4" text="Short"/>
+            <Entry value="5" text="Unsigned Short"/>
+            <Entry value="6" text="Int"/>
+            <Entry value="7" text="Unsigned Int"/>
+            <Entry value="8" text="Long"/>
+            <Entry value="9" text="Unsigned Long"/>
+            <Entry value="10" text="Float"/>
+            <Entry value="11" text="Double"/>
+            <Entry value="12" text="Id Type"/>
+          </Domain>
+        </Property>
+        <Property name="ResultNormals" id="33461.ResultNormals" number_of_elements="1">
+          <Element index="0" value="0"/>
+          <Domain name="bool" id="33461.ResultNormals.bool"/>
+        </Property>
+        <Property name="ResultTCoords" id="33461.ResultTCoords" number_of_elements="1">
+          <Element index="0" value="0"/>
+          <Domain name="bool" id="33461.ResultTCoords.bool"/>
+        </Property>
+      </Proxy>
+      <Proxy group="filters" type="Calculator" id="33697" servers="1" compound_name="Calculator2">
+        <Property name="AttributeType" id="33697.AttributeType" number_of_elements="1">
+          <Element index="0" value="0"/>
+          <Domain name="enum" id="33697.AttributeType.enum">
+            <Entry value="0" text="Point Data"/>
+            <Entry value="1" text="Cell Data"/>
+          </Domain>
+        </Property>
+        <Property name="CoordinateResults" id="33697.CoordinateResults" number_of_elements="1">
+          <Element index="0" value="0"/>
+          <Domain name="bool" id="33697.CoordinateResults.bool"/>
+        </Property>
+        <Property name="Function" id="33697.Function" number_of_elements="1">
+          <Element index="0" value="pred_p-true_p"/>
+        </Property>
+        <Property name="FunctionParserType" id="33697.FunctionParserType" number_of_elements="1">
+          <Element index="0" value="1"/>
+        </Property>
+        <Property name="Input" id="33697.Input" number_of_elements="1">
+          <Proxy value="33461" output_port="0"/>
+          <Domain name="groups" id="33697.Input.groups"/>
+          <Domain name="input_array" id="33697.Input.input_array"/>
+          <Domain name="input_type" id="33697.Input.input_type"/>
+        </Property>
+        <Property name="ReplaceInvalidValues" id="33697.ReplaceInvalidValues" number_of_elements="1">
+          <Element index="0" value="1"/>
+          <Domain name="bool" id="33697.ReplaceInvalidValues.bool"/>
+        </Property>
+        <Property name="ReplacementValue" id="33697.ReplacementValue" number_of_elements="1">
+          <Element index="0" value="0"/>
+          <Domain name="range" id="33697.ReplacementValue.range"/>
+        </Property>
+        <Property name="ResultArrayName" id="33697.ResultArrayName" number_of_elements="1">
+          <Element index="0" value="diff_pressure"/>
+        </Property>
+        <Property name="ResultArrayType" id="33697.ResultArrayType" number_of_elements="1">
+          <Element index="0" value="11"/>
+          <Domain name="enum" id="33697.ResultArrayType.enum">
+            <Entry value="2" text="Char"/>
+            <Entry value="15" text="Signed Char"/>
+            <Entry value="3" text="Unsigned Char"/>
+            <Entry value="4" text="Short"/>
+            <Entry value="5" text="Unsigned Short"/>
+            <Entry value="6" text="Int"/>
+            <Entry value="7" text="Unsigned Int"/>
+            <Entry value="8" text="Long"/>
+            <Entry value="9" text="Unsigned Long"/>
+            <Entry value="10" text="Float"/>
+            <Entry value="11" text="Double"/>
+            <Entry value="12" text="Id Type"/>
+          </Domain>
+        </Property>
+        <Property name="ResultNormals" id="33697.ResultNormals" number_of_elements="1">
+          <Element index="0" value="0"/>
+          <Domain name="bool" id="33697.ResultNormals.bool"/>
+        </Property>
+        <Property name="ResultTCoords" id="33697.ResultTCoords" number_of_elements="1">
+          <Element index="0" value="0"/>
+          <Domain name="bool" id="33697.ResultTCoords.bool"/>
+        </Property>
+      </Proxy>
+      <Proxy group="filters" type="Delaunay2D" id="33944" servers="1" compound_name="Delaunay2D1">
+        <Property name="Alpha" id="33944.Alpha" number_of_elements="1">
+          <Element index="0" value="0"/>
+          <Domain name="range" id="33944.Alpha.range"/>
+        </Property>
+        <Property name="BoundingTriangulation" id="33944.BoundingTriangulation" number_of_elements="1">
+          <Element index="0" value="0"/>
+          <Domain name="bool" id="33944.BoundingTriangulation.bool"/>
+        </Property>
+        <Property name="Input" id="33944.Input" number_of_elements="1">
+          <Proxy value="33697" output_port="0"/>
+          <Domain name="groups" id="33944.Input.groups"/>
+          <Domain name="input_type" id="33944.Input.input_type"/>
+        </Property>
+        <Property name="Offset" id="33944.Offset" number_of_elements="1">
+          <Element index="0" value="1"/>
+          <Domain name="range" id="33944.Offset.range"/>
+        </Property>
+        <Property name="ProjectionPlaneMode" id="33944.ProjectionPlaneMode" number_of_elements="1">
+          <Element index="0" value="0"/>
+          <Domain name="enum" id="33944.ProjectionPlaneMode.enum">
+            <Entry value="0" text="XY Plane"/>
+            <Entry value="2" text="Best-Fitting Plane"/>
+          </Domain>
+        </Property>
+        <Property name="Tolerance" id="33944.Tolerance" number_of_elements="1">
+          <Element index="0" value="0.00001"/>
+          <Domain name="range" id="33944.Tolerance.range"/>
+        </Property>
+      </Proxy>
+      <Proxy group="filters" type="PythonCalculator" id="32739" servers="1" compound_name="PythonCalculator1">
+        <Property name="ArrayAssociation" id="32739.ArrayAssociation" number_of_elements="1">
+          <Element index="0" value="0"/>
+          <Domain name="enum" id="32739.ArrayAssociation.enum">
+            <Entry value="0" text="Point Data"/>
+            <Entry value="1" text="Cell Data"/>
+          </Domain>
+        </Property>
+        <Property name="ArrayName" id="32739.ArrayName" number_of_elements="1">
+          <Element index="0" value="pred_velocity"/>
+        </Property>
+        <Property name="CopyArrays" id="32739.CopyArrays" number_of_elements="1">
+          <Element index="0" value="1"/>
+          <Domain name="bool" id="32739.CopyArrays.bool"/>
+        </Property>
+        <Property name="Expression" id="32739.Expression" number_of_elements="1">
+          <Element index="0" value="make_vector(pred_u, pred_v)"/>
+        </Property>
+        <Property name="Input" id="32739.Input" number_of_elements="1">
+          <Domain name="groups" id="32739.Input.groups"/>
+          <Domain name="input_type" id="32739.Input.input_type"/>
+        </Property>
+      </Proxy>
+      <Proxy group="filters" type="PythonCalculator" id="32976" servers="1" compound_name="PythonCalculator2">
+        <Property name="ArrayAssociation" id="32976.ArrayAssociation" number_of_elements="1">
+          <Element index="0" value="0"/>
+          <Domain name="enum" id="32976.ArrayAssociation.enum">
+            <Entry value="0" text="Point Data"/>
+            <Entry value="1" text="Cell Data"/>
+          </Domain>
+        </Property>
+        <Property name="ArrayName" id="32976.ArrayName" number_of_elements="1">
+          <Element index="0" value="true_velocity"/>
+        </Property>
+        <Property name="CopyArrays" id="32976.CopyArrays" number_of_elements="1">
+          <Element index="0" value="1"/>
+          <Domain name="bool" id="32976.CopyArrays.bool"/>
+        </Property>
+        <Property name="Expression" id="32976.Expression" number_of_elements="1">
+          <Element index="0" value="make_vector(true_u, true_v)"/>
+        </Property>
+        <Property name="Input" id="32976.Input" number_of_elements="1">
+          <Proxy value="32739" output_port="0"/>
+          <Domain name="groups" id="32976.Input.groups"/>
+          <Domain name="input_type" id="32976.Input.input_type"/>
+        </Property>
+      </Proxy>
+      <ExposedProperties>
+        <Property name="Input" proxy_name="PythonCalculator1" exposed_name="Input"/>
+      </ExposedProperties>
+      <OutputPort name="Output" proxy="Delaunay2D1" port_index="0"/>
+      <Hints>
+        <ShowInMenu/>
+      </Hints>
+    </CompoundSourceProxy>
+  </CustomProxyDefinition>
+</CustomFilterDefinitions>
