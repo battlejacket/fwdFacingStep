@@ -12,28 +12,27 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import os
-import warnings
+# import os
+from os import walk, path
+import csv
 
 from sympy import Symbol, Eq, Abs, StrictGreaterThan, StrictLessThan, And, tanh, Or, GreaterThan, LessThan, Not, sqrt
 import numpy as np
 import torch
 
 import modulus.sym
-from modulus.sym.hydra import to_absolute_path, instantiate_arch, ModulusConfig
-from modulus.sym.utils.io import csv_to_dict
+from modulus.sym.hydra import to_absolute_path, ModulusConfig
+# from modulus.sym.utils.io import csv_to_dict
 from modulus.sym.solver import Solver
 from modulus.sym.domain import Domain
-from modulus.sym.geometry import Bounds, Parameterization
+from modulus.sym.geometry import Parameterization
 from modulus.sym.geometry.primitives_2d import Rectangle, Rectangle, Line
-from modulus.sym.utils.sympy.functions import parabola
 from modulus.sym.domain.constraint import (
     PointwiseBoundaryConstraint,
     PointwiseInteriorConstraint,
     IntegralBoundaryConstraint,
 )
 
-from modulus.sym.domain.validator import PointwiseValidator
 from modulus.sym.domain.inferencer import PointwiseInferencer
 from modulus.sym.domain.monitor import PointwiseMonitor
 from modulus.sym.key import Key
@@ -41,11 +40,9 @@ from modulus.sym.node import Node
 from modulus.sym.eq.pdes.navier_stokes import NavierStokes
 from modulus.sym.eq.pdes.basic import NormalDotVec
 from modulus.sym.models.fourier_net import FourierNetArch
-from modulus.sym.models.fully_connected import FullyConnectedArch
 from modulus.sym.utils.io.vtk import var_to_polyvtk
 from ansysValidator import ansysValidator
 from dataConstraint import dataConstraint
-from navier_stokes import NavierStokes_t
 
 
 @modulus.sym.main(config_path="conf", config_name="config")
@@ -80,16 +77,16 @@ def run(cfg: ModulusConfig) -> None:
     # velprof2 = (4*Um*2/(D1^2))*(D1*(y)-(y)^2)
 
     param_ranges = {
-    Re: (100, 1213),
-    Lo: (0.2, 1),
-    Ho: (0.001, 0.466),
-    }    
+        Re: (100, 1000),
+        Lo: (0.2, 1),
+        Ho: (0.001, 0.33),
+        }  
     
     # param_ranges = {
-    # Re: 100,
-    # Lo: 0.5,
-    # Ho: 0.001,
-    # }
+    #     Re: 100,
+    #     Lo: 0.5,
+    #     Ho: 0.2,
+    #     }
 
     pr = Parameterization(param_ranges)
 
@@ -145,10 +142,9 @@ def run(cfg: ModulusConfig) -> None:
     flow_net = FourierNetArch(
         input_keys=input_keys,
         output_keys=output_keys,
-        # frequencies=("axis", [i/2 for i in range(10)]),
-        # frequencies_params=("axis", [i/2 for i in range(10)]),
         frequencies=("axis", [i/2 for i in range(32)]),
         frequencies_params=("axis", [i/2 for i in range(32)]),
+        adaptive_activations=True,
         )
 
 
@@ -159,236 +155,247 @@ def run(cfg: ModulusConfig) -> None:
         + [flow_net.make_node(name="flow_network")
         ] + [Node.from_sympy(Re/1213, "Re_s")
         ] + [Node.from_sympy(rho*Um*D1/Re, "nu")
-        # ] + [Node.from_sympy(sqrt(u**2 + v**2), "vel")
-        # ] + [Node.from_sympy(0.5*rho*vel**2, "q")
-        # ] + [Node.from_sympy(p+q, "ptot")        
+        ] + [Node.from_sympy(1*u, "u_d")
+        ] + [Node.from_sympy(1*v, "v_d")
+        ] + [Node.from_sympy(1*p, "p_d")        
         ] + [Node.from_sympy(p+0.5*rho*(sqrt(u**2 + v**2))**2, "ptot")
         ]
     )
 
+    if cfg.run_mode=="train" and cfg.custom.usePhysics:
+        # inlet
+        inletConstraint = PointwiseBoundaryConstraint(
+            nodes=nodes,
+            geometry=inlet,
+            outvar={"u": velprof, "v": 0},
+            batch_size=cfg.batch_size.inlet,
+            batch_per_epoch=cfg.batch_size.batchPerEpoch,
+            lambda_weighting={"u": 10, "v": 10},
+            parameterization=pr,
+        )
+        domain.add_constraint(inletConstraint, "inlet")
 
-    # inlet
-    inletConstraint = PointwiseBoundaryConstraint(
-        nodes=nodes,
-        geometry=inlet,
-        outvar={"u": velprof, "v": 0},
-        batch_size=cfg.batch_size.inlet,
-        batch_per_epoch=cfg.batch_size.batchPerEpoch,
-        lambda_weighting={"u": 50, "v": 50},
-        parameterization=pr,
-    )
-    domain.add_constraint(inletConstraint, "inlet")
+        # outlet
+        outletConstraint = PointwiseBoundaryConstraint(
+            nodes=nodes,
+            geometry=outlet,
+            outvar={"p": 0},
+            batch_size=cfg.batch_size.outlet,
+            batch_per_epoch=cfg.batch_size.batchPerEpoch,
+            lambda_weighting={"p": 10},
+            parameterization=pr,
+        )
+        domain.add_constraint(outletConstraint, "outlet")
 
-    # outlet
-    outletConstraint = PointwiseBoundaryConstraint(
-        nodes=nodes,
-        geometry=outlet,
-        outvar={"p": 0},
-        batch_size=cfg.batch_size.outlet,
-        batch_per_epoch=cfg.batch_size.batchPerEpoch,
-        lambda_weighting={"p": 1},
-        parameterization=pr,
-    )
-    domain.add_constraint(outletConstraint, "outlet")
+        # no slip
+        noSlipCriteria=And(StrictGreaterThan(x, -L1), StrictLessThan(x, L2))
+        noSlipHrCriteria=And(GreaterThan(x,-D1), LessThan(x,D1/2), GreaterThan(y, 0))
+        no_slip = PointwiseBoundaryConstraint(
+            nodes=nodes,
+            geometry=pipe,
+            outvar={"u": 0, "v": 0},
+            batch_size=cfg.batch_size.NoSlip,
+            batch_per_epoch=cfg.batch_size.batchPerEpoch,
+            lambda_weighting={"u": 10, "v": 10},
+            # criteria=noSlipCriteria,
+            criteria=And(noSlipCriteria, Not(noSlipHrCriteria)),
+            parameterization=pr,
+        )
+        domain.add_constraint(no_slip, "no_slip")
 
-    # no slip
-    noSlipCriteria=And(StrictGreaterThan(x, -L1), StrictLessThan(x, L2))
-    noSlipHrCriteria=And(GreaterThan(x,-D1), LessThan(x,D1/2), GreaterThan(y, 0))
-    no_slip = PointwiseBoundaryConstraint(
-        nodes=nodes,
-        geometry=pipe,
-        outvar={"u": 0, "v": 0},
-        batch_size=cfg.batch_size.NoSlip,
-        batch_per_epoch=cfg.batch_size.batchPerEpoch,
-        lambda_weighting={"u": 1, "v": 1},
-        criteria=And(noSlipCriteria, Not(noSlipHrCriteria)),
-        parameterization=pr,
-    )
-    domain.add_constraint(no_slip, "no_slip")
-
-    no_slipHR = PointwiseBoundaryConstraint(
-        nodes=nodes,
-        geometry=pipe,
-        outvar={"u": 0, "v": 0},
-        batch_size=cfg.batch_size.NoSlipHR,
-        batch_per_epoch=cfg.batch_size.batchPerEpoch,
-        lambda_weighting={"u": 1, "v": 1},
-        criteria=And(noSlipCriteria, noSlipHrCriteria),
-        parameterization=pr,
-    )
-    domain.add_constraint(no_slipHR, "no_slipHR")
+        no_slipHR = PointwiseBoundaryConstraint(
+            nodes=nodes,
+            geometry=pipe,
+            outvar={"u": 0, "v": 0},
+            batch_size=cfg.batch_size.NoSlipHR,
+            batch_per_epoch=cfg.batch_size.batchPerEpoch,
+            lambda_weighting={"u": 50, "v": 50},
+            criteria=And(noSlipCriteria, noSlipHrCriteria),
+            # criteria=StrictLessThan(y, D1/2),
+            parameterization=pr,
+        )
+        domain.add_constraint(no_slipHR, "no_slipHR")
 
 
-    # interior
-    interior = PointwiseInteriorConstraint(
-        nodes=nodes,
-        geometry=pipe,
-        outvar={"continuity": 0, "momentum_x": 0, "momentum_y": 0},
-        batch_size=cfg.batch_size.Interior,
-        lambda_weighting={
-            "continuity": 10*tanh(10 * Symbol("sdf")),
-            "momentum_x": 10*tanh(10 * Symbol("sdf")),
-            "momentum_y": 10*tanh(10 * Symbol("sdf")),
-        },
-        criteria=Or(StrictLessThan(x,-D1), StrictGreaterThan(x,D1)),
-        batch_per_epoch=cfg.batch_size.batchPerEpoch,
-        # quasirandom=True,
-        parameterization=pr,
-    )
-    domain.add_constraint(interior, "interior")
+        # interior
+        lambdafunc=10*tanh(20 * Symbol("sdf"))
+        interior = PointwiseInteriorConstraint(
+            nodes=nodes,
+            geometry=pipe,
+            outvar={"continuity": 0, "momentum_x": 0, "momentum_y": 0},
+            batch_size=cfg.batch_size.Interior,
+            lambda_weighting={
+                "continuity": lambdafunc,
+                "momentum_x": lambdafunc,
+                "momentum_y": lambdafunc,
+            },
+            criteria=Or(StrictLessThan(x,1.5*-D1), StrictGreaterThan(x,1.5*D1)),
+            batch_per_epoch=cfg.batch_size.batchPerEpoch,
+            # quasirandom=True,
+            parameterization=pr,
+        )
+        domain.add_constraint(interior, "interior")
+        
 
-    interiorHR = PointwiseInteriorConstraint(
-        nodes=nodes,
-        geometry=pipe,
-        outvar={"continuity": 0, "momentum_x": 0, "momentum_y": 0},
-        batch_size=cfg.batch_size.InteriorHR,
-        lambda_weighting={
-            "continuity": 10*tanh(10 * Symbol("sdf")),
-            "momentum_x": 10*tanh(10 * Symbol("sdf")),
-            "momentum_y": 10*tanh(10 * Symbol("sdf")),
-        },
-        criteria=And(GreaterThan(x,-D1), LessThan(x,D1)),
-        batch_per_epoch=cfg.batch_size.batchPerEpoch,
-        parameterization=pr,
-    )
-    domain.add_constraint(interiorHR, "interiorHR")
+        interiorHR = PointwiseInteriorConstraint(
+            nodes=nodes,
+            geometry=pipe,
+            outvar={"continuity": 0, "momentum_x": 0, "momentum_y": 0},
+            batch_size=cfg.batch_size.InteriorHR,
+            lambda_weighting={
+                "continuity": lambdafunc,
+                "momentum_x": lambdafunc,
+                "momentum_y": lambdafunc,
+            },
+            criteria=And(GreaterThan(x,1.5*-D1), LessThan(x,1.5*D1)),
+            batch_per_epoch=cfg.batch_size.batchPerEpoch,
+            parameterization=pr,
+        )
+        domain.add_constraint(interiorHR, "interiorHR")
 
-    # integral continuity
+        # integral continuity
 
-    integral_continuity = IntegralBoundaryConstraint(
-        nodes=nodes,
-        geometry=integralPlane,
-        # geometry=pipe,
-        outvar={"normal_dot_vel": Um*2*(1 - (1/3)/(D1**2))},
-        batch_size=10,
-        integral_batch_size=cfg.batch_size.integralContinuity,
-        lambda_weighting={"normal_dot_vel": 0.1},
-        parameterization={**param_ranges, **{xPos:(-L1, L2)}},
-        # fixed_dataset=False,
-        criteria=interiorCriteria
-    )
-    domain.add_constraint(integral_continuity, "integral_continuity")
+        integral_continuity = IntegralBoundaryConstraint(
+            nodes=nodes,
+            geometry=integralPlane,
+            # geometry=pipe,
+            outvar={"normal_dot_vel": Um*2*(1 - (1/3)/(D1**2))},
+            batch_size=10,
+            integral_batch_size=cfg.batch_size.integralContinuity,
+            lambda_weighting={"normal_dot_vel": 0.1},
+            parameterization={**param_ranges, **{xPos:(-L1, L2)}},
+            # fixed_dataset=False,
+            criteria=interiorCriteria
+        )
+        domain.add_constraint(integral_continuity, "integral_continuity")
 
     # -----------------------------------------------Data Constraints------------------------------------------------
-    # ansysVarNames = ("Pressure [ Pa ]", "Velocity u [ m s^-1 ]", "Velocity v [ m s^-1 ]", "X [ m ]", "Y [ m ]")
-    ansysVarNames = ("Pressure", "Velocity:0", "Velocity:1", "Points:0", "Points:1")
-    modulusVarNames = ("p", "u", "v", "x", "y")
-    # scales = ((0,1), (0,1), (0,-1), (0,1), (-0.5,-1))
-    scales = ((0,1), (0,1), (0,1), (0,1), (-0.5,1))
-    additionalConstraints=None #{"continuity": 0} #, "momentum_x": 0, "momentum_y": 0
+    if cfg.run_mode=="train" and cfg.custom.useData:
+        # ansysVarNames = ("Pressure [ Pa ]", "Velocity u [ m s^-1 ]", "Velocity v [ m s^-1 ]", "X [ m ]", "Y [ m ]")
+        ansysVarNames = ("Pressure", "Velocity:0", "Velocity:1", "Points:0", "Points:1")
+        modulusVarNames = ("p_d", "u_d", "v_d", "x", "y")
+        scales = ((0,1), (0,1), (0,1), (0,1), (-0.5,1))
+        additionalConstraints=None #{"continuity": 0, "momentum_x": 0, "momentum_y": 0}
 
-    for root, dirs, files in os.walk(to_absolute_path("./ansys/data")):
-        for name in files:
-            print(os.path.join(root, name))
-            file_path = str(os.path.join(root, name))
-            domain.add_constraint(dataConstraint(file_path, ansysVarNames, modulusVarNames, nodes, scales, batches=10, skiprows=1, param=True, additionalConstraints=additionalConstraints), name)
+        for root, dirs, files in walk(to_absolute_path("./ansys/data100")):
+            for name in files:
+                # print(path.join(root, name))
+                file_path = str(path.join(root, name))
+                domain.add_constraint(dataConstraint(file_path, ansysVarNames, modulusVarNames, nodes, scales, batches=cfg.batch_size.batchesData, skiprows=1, param=True, additionalConstraints=additionalConstraints), name)
 
+
+    
     # ------------------------------------------------Inferencers------------------------------------------------
+    if cfg.run_mode!="train":
+        inletConstraint = PointwiseBoundaryConstraint(
+            nodes=nodes,
+            geometry=inlet,
+            outvar={"u": 0},
+            batch_size=1,
+            batch_per_epoch=1,
+            lambda_weighting={"u": 1},
+            parameterization=pr,
+        )
+        domain.add_constraint(inletConstraint, "inlet")
+    
     quasi = False
-    crit = And(GreaterThan(x,-D1), LessThan(x,D1))
-    nrPoints=256
+    crit = And(GreaterThan(x,-2*D1), LessThan(x,2*D1))
+    nrPoints=10000
+    output_names=["u", "v", "p", "nu", "Re", "Lo", "Ho"]
+
+    # para={Re: 100, Lo: 0.2, Ho: 0.2}
+    # interiorInferencer = PointwiseInferencer(
+    #     nodes=nodes,
+    #     invar=pipe.sample_interior(nr_points=nrPoints, parameterization=para, quasirandom=quasi, criteria=crit),
+    #     output_names=output_names,
+    # )
+    # domain.add_inferencer(interiorInferencer, "interior_" + str(para[Lo]).replace(".", ",") + "_" + str(para[Ho]).replace(".", ",") + "_" + str(para[Re]).replace(".", ","))
+    # noSlipInferencer = PointwiseInferencer(
+    #     nodes=nodes,
+    #     invar=obstacle.sample_boundary(nr_points=500, parameterization=para, quasirandom=quasi, criteria=crit),
+    #     output_names=output_names,
+    # )
+    # domain.add_inferencer(noSlipInferencer, "noSlip_" + str(para[Lo]).replace(".", ",") + "_" + str(para[Ho]).replace(".", ",") + "_" + str(para[Re]).replace(".", ","))
     
     # para={Re: 100, Lo: 0.5, Ho: 0.2}
     # interiorInferencer = PointwiseInferencer(
     #     nodes=nodes,
     #     invar=pipe.sample_interior(nr_points=nrPoints, parameterization=para, quasirandom=quasi, criteria=crit),
-    #     output_names=["u", "v", "p", "Re", "Re_s", "nu"],
+    #     output_names=output_names,
     # )
     # domain.add_inferencer(interiorInferencer, "interior_" + str(para[Lo]).replace(".", ",") + "_" + str(para[Ho]).replace(".", ",") + "_" + str(para[Re]).replace(".", ","))
-
-    # para={Re: 1213, Lo: 0.5, Ho: 0.2}
-    # interiorInferencer = PointwiseInferencer(
+    # noSlipInferencer = PointwiseInferencer(
     #     nodes=nodes,
-    #     invar=pipe.sample_interior(nr_points=nrPoints, parameterization=para, quasirandom=quasi, criteria=crit),
-    #     output_names=["u", "v", "p", "Re", "Re_s", "nu"],
+    #     invar=obstacle.sample_boundary(nr_points=500, parameterization=para, quasirandom=quasi, criteria=crit),
+    #     output_names=output_names,
     # )
-    # domain.add_inferencer(interiorInferencer, "interior_" + str(para[Lo]).replace(".", ",") + "_" + str(para[Ho]).replace(".", ",") + "_" + str(para[Re]).replace(".", ","))
-
-    # para={Re: 100, Lo: 0.3, Ho: 0.1}
-    # interiorInferencer = PointwiseInferencer(
-    #     nodes=nodes,
-    #     invar=pipe.sample_interior(nr_points=nrPoints, parameterization=para, quasirandom=quasi, criteria=crit),
-    #     output_names=["u", "v", "p", "Re", "Re_s", "nu"],
-    # )
-    # domain.add_inferencer(interiorInferencer, "interior_" + str(para[Lo]).replace(".", ",") + "_" + str(para[Ho]).replace(".", ",") + "_" + str(para[Re]).replace(".", ","))
-
-
-    # para={Re: 1213, Lo: 0.3, Ho: 0.1}
-    # interiorInferencer = PointwiseInferencer(
-    #     nodes=nodes,
-    #     invar=pipe.sample_interior(nr_points=nrPoints, parameterization=para, quasirandom=quasi, criteria=crit),
-    #     output_names=["u", "v", "p", "Re", "Re_s", "nu"],
-    # )
-    # domain.add_inferencer(interiorInferencer, "interior_" + str(para[Lo]).replace(".", ",") + "_" + str(para[Ho]).replace(".", ",") + "_" + str(para[Re]).replace(".", ","))
-
-    # para={Re: 100, Lo: 0.5, Ho: 0.0}
-    # interiorInferencer = PointwiseInferencer(
-    #     nodes=nodes,
-    #     invar=pipe.sample_interior(nr_points=nrPoints, parameterization=para, quasirandom=quasi, criteria=crit),
-    #     output_names=["u", "v", "p", "Re", "Re_s", "nu"],
-    # )
-    # domain.add_inferencer(interiorInferencer, "interior_" + str(para[Lo]).replace(".", ",") + "_" + str(para[Ho]).replace(".", ",") + "_" + str(para[Re]).replace(".", ","))
-
-    # para={Re: 100, Lo: 0.5, Ho: 0.001}
-    # interiorInferencer = PointwiseInferencer(
-    #     nodes=nodes,
-    #     invar=pipe.sample_interior(nr_points=nrPoints, parameterization=para, quasirandom=quasi, criteria=crit),
-    #     output_names=["u", "v", "p", "Re", "nu"],
-    # )
-    # domain.add_inferencer(interiorInferencer, "interior_" + str(para[Re]).replace(".", ",") + "_" + str(para[Lo]).replace(".", ",") + "_" + str(para[Ho]).replace(".", ","))
+    # domain.add_inferencer(noSlipInferencer, "noSlip_" + str(para[Lo]).replace(".", ",") + "_" + str(para[Ho]).replace(".", ",") + "_" + str(para[Re]).replace(".", ","))
 
     #------------------------------------------Validators---------------------------------------------------------
-    ansysVarNames = ("Pressure [ Pa ]", "Velocity u [ m s^-1 ]", "Velocity v [ m s^-1 ]", "X [ m ]", "Y [ m ]")
+    # ansysVarNames = ("Pressure [ Pa ]", "Velocity u [ m s^-1 ]", "Velocity v [ m s^-1 ]", "X [ m ]", "Y [ m ]")
     ansysVarNames = ("Pressure", "Velocity:0", "Velocity:1", "Points:0", "Points:1")
     modulusVarNames = ("p", "u", "v", "x", "y")
     scales = ((0,1), (0,1), (0,1), (0,1), (-0.5,1))
 
-    for root, dirs, files in os.walk(to_absolute_path("./ansys/data")):
+    for root, dirs, files in walk(to_absolute_path("./ansys/validators100")):
         for name in files:
-            print(os.path.join(root, name))
-            file_path = str(os.path.join(root, name))
-            domain.add_validator(ansysValidator(file_path, ansysVarNames, modulusVarNames, nodes, scales, 1, True), name)
+            # print(path.join(root, name))
+            file_path = str(path.join(root, name))
+            domain.add_validator(ansysValidator(file_path, ansysVarNames, modulusVarNames, nodes, scales, 1, True), name.split("_")[0])
+    
+    # file_path=to_absolute_path("./ansys/validators/DP0_359,7-0,70666666666666678-0,1.csv")
+    # domain.add_validator(ansysValidator(file_path, ansysVarNames, modulusVarNames, nodes, scales, 1, True), "DP0_359,7-0,70666666666666678-0,1")
 
-    # # Monitors
+    # Monitors
     # nrPoints=256
-    # # parameterList = [{Re: 100, Lo: 0.5, Ho: 0.001}]
-    # parameterList = []
-    # parameterFile = open(to_absolute_path("./param.txt"), 'r') # read parameters from txt file using ansys parameters format. (copy paste from DOE/parameter set)
-    # parameterListStr = parameterFile.readlines()
+    # ansysFilePath=to_absolute_path("./ansys.csv") #csv exported from ansys DOE/parameters (edited to have column names on first row, including "Name" (dp) in first column)
     
-    # for i, row in enumerate(parameterListStr):
-    #     parameterString = row.replace(" ","").replace("\n", "").replace(",",".").split("\t")
-    #     nameString = "_" + parameterString[0] + "_" + parameterString[1] + "_" + parameterString[2] + "_" + parameterString[3]
-    #     parameters={
-    #             Re: float(parameterString[1]),  
-    #             Lo: float(parameterString[2]),
-    #             Ho: float(parameterString[3]),
-    #         }
-    #     # inletPoints = inlet.sample_boundary(nrPoints, parameterization=pr)
-    #     # outletPoints = outlet.sample_boundary(nrPoints, parameterization=pr)
-    #     upstreamPressurePoints   = integralPlane.sample_boundary(nrPoints, parameterization={**parameters, **{xPos:-2*D1}})
-    #     downstreamPressurePoints = integralPlane.sample_boundary(nrPoints, criteria=interiorCriteria, parameterization={**parameters, **{xPos:2*D1}})
+    # with open(ansysFilePath, "r") as ansysFile:
+    #     reader = csv.reader(ansysFile, delimiter=",")
+    #     for i, parameters in enumerate(reader):
+    #         if i != 0:
+    #             nameString = "_" + parameters[0].replace(" ", "") + "_" + parameters[1] + "_" + parameters[2] + "_" + parameters[3]
+    #             parameters={
+    #                 Re: float(parameters[1]),  
+    #                 Lo: float(parameters[2]),
+    #                 Ho: float(parameters[3]),
+    #             }
+    #             upstreamPressurePoints   = integralPlane.sample_boundary(nrPoints, parameterization={**parameters, **{xPos:-2.5*D1}})
+    #             downstreamPressurePoints = integralPlane.sample_boundary(nrPoints, criteria=interiorCriteria, parameterization={**parameters, **{xPos:2*D1}})
 
-    #     # var_to_polyvtk(upstreamPressurePoints, './vtp/upstreamPressurePoints')
-    #     # var_to_polyvtk(downstreamPressurePoints, './vtp/downstreamPressurePoints')
+    #             # var_to_polyvtk(upstreamPressurePoints, './vtp/upstreamPressurePoints')
+    #             # var_to_polyvtk(downstreamPressurePoints, './vtp/downstreamPressurePoints')
 
-    #     upstreamPressure = PointwiseMonitor(
-    #         invar=upstreamPressurePoints,
-    #         output_names=["p", "ptot"],
-    #         metrics={"upstreamPressure" + nameString: lambda var: torch.mean(var["p"]), "upstreamPressureTot" + nameString: lambda var: torch.mean(var["ptot"])},
-    #         nodes=nodes,
-    #     )
-    #     domain.add_monitor(upstreamPressure)
+    #             upstreamPressure = PointwiseMonitor(
+    #                 invar=upstreamPressurePoints,
+    #                 output_names=["p", "ptot"],
+    #                 metrics={"upstreamPressure" + nameString: lambda var: torch.mean(var["p"]), "upstreamPressureTot" + nameString: lambda var: torch.mean(var["ptot"])},
+    #                 nodes=nodes,
+    #             )
+    #             domain.add_monitor(upstreamPressure)
 
-    #     downstreamPressure = PointwiseMonitor(
-    #         invar=downstreamPressurePoints,
-    #         output_names=["p", "ptot"],
-    #         metrics={"downstreamPressure" + nameString: lambda var: torch.mean(var["p"]), "downstreamPressureTot" + nameString: lambda var: torch.mean(var["ptot"])},
-    #         nodes=nodes,
-    #     )
-    #     domain.add_monitor(downstreamPressure)
+    #             downstreamPressure = PointwiseMonitor(
+    #                 invar=downstreamPressurePoints,
+    #                 output_names=["p", "ptot"],
+    #                 metrics={"downstreamPressure" + nameString: lambda var: torch.mean(var["p"]), "downstreamPressureTot" + nameString: lambda var: torch.mean(var["ptot"])},
+    #                 nodes=nodes,
+    #             )
+    #             domain.add_monitor(downstreamPressure)
+                
+                # DSP_Inferencer = PointwiseInferencer(
+                #     nodes=nodes,
+                #     invar=downstreamPressurePoints,
+                #     output_names=["Re", "Lo", "Ho", "p", "ptot"],
+                # )
+                # domain.add_inferencer(DSP_Inferencer, "downstreamPressure" + nameString)
+                
+                # USP_Inferencer = PointwiseInferencer(
+                #     nodes=nodes,
+                #     invar=downstreamPressurePoints,
+                #     output_names=["Re", "Lo", "Ho", "p", "ptot"],
+                # )
+                # domain.add_inferencer(USP_Inferencer, "upstreamPressure" + nameString)
     
-    # parameterFile.close()
     # make solver
     slv = Solver(cfg, domain)
 
