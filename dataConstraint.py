@@ -11,7 +11,7 @@ Re = Symbol("Re")
 x, y = Symbol("x"), Symbol("y")
 Lo, Ho = Symbol("Lo"), Symbol("Ho")
 
-def dataConstraint(file_path, ansysVarNames, modulusVarNames, nodes, scales, batches, skiprows=1, param=False, nonDim=None, additionalConstraints=None):
+def dataConstraint(file_path, ansysVarNames, modulusVarNames, nodes, scales, batches, skiprows=1, param=False, nonDim=None, additionalConstraints=None, criteria=None):
     if path.exists(to_absolute_path(file_path)):
         mapping = {}
         for ansVarName, modulusVarName in zip(ansysVarNames, modulusVarNames):
@@ -66,35 +66,22 @@ def dataConstraint(file_path, ansysVarNames, modulusVarNames, nodes, scales, bat
             key: value for key, value in openfoam_var.items() if key in outvarKeys
         }
         
-        openfoam_invar_numpy_t={}
-        openfoam_outvar_numpy_t={}
-        for key in openfoam_invar_numpy.keys():
-            # print("original invar " + str(key) + ": ", openfoam_invar_numpy[key].shape)
-            openfoam_invar_numpy_t[key] = np.copy(openfoam_invar_numpy[key][openfoam_invar_numpy["x"]<2])
-            openfoam_invar_numpy_t[key] = openfoam_invar_numpy_t[key].reshape((openfoam_invar_numpy_t[key].shape[0], 1))
-            # print("modified invar " + str(key) + ": ", openfoam_invar_numpy_t[key].shape)
-        for key in openfoam_outvar_numpy.keys():
-            # print("original outvar " + str(key) + ": ", openfoam_outvar_numpy[key].shape)
-            openfoam_outvar_numpy_t[key] = np.copy(openfoam_outvar_numpy[key][openfoam_invar_numpy["x"]<2])
-            openfoam_outvar_numpy_t[key]=openfoam_outvar_numpy_t[key].reshape((openfoam_outvar_numpy_t[key].shape[0], 1))
-            # print("modified outvar " + str(key) + ": ", openfoam_outvar_numpy_t[key].shape)
-        openfoam_invar_numpy=openfoam_invar_numpy_t
-        openfoam_outvar_numpy=openfoam_outvar_numpy_t
+        
         
         openfoam_invar_numpy_t={}
         openfoam_outvar_numpy_t={}
-        for key in openfoam_invar_numpy.keys():
-            # print("original invar " + str(key) + ": ", openfoam_invar_numpy[key].shape)
-            openfoam_invar_numpy_t[key] = np.copy(openfoam_invar_numpy[key][openfoam_invar_numpy["x"]>-2])
-            openfoam_invar_numpy_t[key] = openfoam_invar_numpy_t[key].reshape((openfoam_invar_numpy_t[key].shape[0], 1))
-            # print("modified invar " + str(key) + ": ", openfoam_invar_numpy_t[key].shape)
-        for key in openfoam_outvar_numpy.keys():
-            # print("original outvar " + str(key) + ": ", openfoam_outvar_numpy[key].shape)
-            openfoam_outvar_numpy_t[key] = np.copy(openfoam_outvar_numpy[key][openfoam_invar_numpy["x"]>-2])
-            openfoam_outvar_numpy_t[key]=openfoam_outvar_numpy_t[key].reshape((openfoam_outvar_numpy_t[key].shape[0], 1))
-            # print("modified outvar " + str(key) + ": ", openfoam_outvar_numpy_t[key].shape)
-        openfoam_invar_numpy=openfoam_invar_numpy_t
-        openfoam_outvar_numpy=openfoam_outvar_numpy_t
+        
+        # for critKey in criteria.keys():
+        
+        # for key in openfoam_invar_numpy.keys():
+        #     openfoam_invar_numpy_t[key] = np.copy(openfoam_invar_numpy[key][(openfoam_invar_numpy["y"]<-0.147) & (openfoam_invar_numpy["y"]>-0.187)])
+        #     openfoam_invar_numpy_t[key] = openfoam_invar_numpy_t[key].reshape((openfoam_invar_numpy_t[key].shape[0], 1))
+        # for key in openfoam_outvar_numpy.keys():
+        #     openfoam_outvar_numpy_t[key] = np.copy(openfoam_outvar_numpy[key][(openfoam_invar_numpy["y"]<-0.147) & (openfoam_invar_numpy["y"]>-0.187)])
+        #     openfoam_outvar_numpy_t[key]=openfoam_outvar_numpy_t[key].reshape((openfoam_outvar_numpy_t[key].shape[0], 1))
+        # openfoam_invar_numpy=openfoam_invar_numpy_t
+        # openfoam_outvar_numpy=openfoam_outvar_numpy_t
+        
 
         # print(openfoam_var['x'].size)
         dataConstraint = PointwiseConstraint.from_numpy(
@@ -102,7 +89,7 @@ def dataConstraint(file_path, ansysVarNames, modulusVarNames, nodes, scales, bat
             invar=openfoam_invar_numpy, 
             outvar=openfoam_outvar_numpy, 
             batch_size=int(openfoam_invar_numpy['x'].size/batches),
-            lambda_weighting={"u_d": np.full_like(openfoam_outvar_numpy["u_d"], 0.01), "v_d": np.full_like(openfoam_outvar_numpy["v_d"], 0.01), "p_d": np.full_like(openfoam_outvar_numpy["p_d"], 0.01)}
+            lambda_weighting={"u_d": np.full_like(openfoam_outvar_numpy["u_d"], 0.1), "v_d": np.full_like(openfoam_outvar_numpy["v_d"], 0.1), "p_d": np.full_like(openfoam_outvar_numpy["p_d"], 0.1)}
             )
         return dataConstraint
     else:

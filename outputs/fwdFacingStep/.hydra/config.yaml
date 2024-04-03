@@ -1,10 +1,10 @@
 training:
-  max_steps: 500000
+  max_steps: 300000
   grad_agg_freq: 1
   rec_results_freq: 1000
   rec_validation_freq: 1000
   rec_inference_freq: 1000
-  rec_monitor_freq: 10000
+  rec_monitor_freq: 1000
   rec_constraint_freq: 1000
   save_network_freq: 1000
   print_stats_freq: 100
@@ -30,7 +30,7 @@ profiler:
   start_step: 0
   end_step: 100
   name: nvtx
-network_dir: ./data100PlusPhysics100k2PhysicsOnly
+network_dir: ./dataPlusPhysics
 initialization_network_dir: ''
 save_filetypes: vtk
 summary_histograms: false
@@ -78,17 +78,18 @@ scheduler:
   _target_: custom
   _name_: tf.ExponentialLR
   decay_rate: 0.95
-  decay_steps: 10000
+  decay_steps: 4000
 batch_size:
   inlet: 64
   outlet: 64
   NoSlipHR: 512
   NoSlip: 1024
-  Interior: 2048
+  Interior: 2560
   InteriorHR: 2048
   integralContinuity: 512
   batchPerEpoch: 1000
-  batchesData: 50
+  batchesData: 1000
 custom:
-  useData: false
+  useData: true
   usePhysics: true
+  nsOnly: true
