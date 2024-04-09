@@ -60,8 +60,10 @@ nu = Symbol("nu")
 D1 = 1
 L1 = 6*D1
 
-stepRatio = D1-0.667
+stepRatio = D1-0.67
 stepHeight = stepRatio*D1
+
+# stepHeight = 0.5*D1
 
 D2 = D1-stepHeight
 L2 = 12*D1
@@ -74,11 +76,17 @@ rho = 1
 velprof = Um*2*(1-(Abs(y)/(D1/2))**2)
 # velprof2 = (4*Um*2/(D1^2))*(D1*(y)-(y)^2)
 
+# param_ranges = {
+#     Re: (100, 1000),
+#     Lo: (0.1, 1),
+#     Ho: (0.1, 0.5),
+#     }
+
 param_ranges = {
     Re: (100, 1000),
     Lo: (0.1, 1),
     Ho: (0.165, 0.33),
-    }  
+    } 
 
 # param_ranges = {
 #     Re: 500,
@@ -193,7 +201,7 @@ def ffs(designs=[], reynoldsNr=500):
 
             # no slip
             noSlipCriteria=And(StrictGreaterThan(x, -L1), StrictLessThan(x, L2))
-            noSlipHrCriteria=And(GreaterThan(x,-D1), LessThan(x,D1/2), GreaterThan(y, 0))
+            noSlipHrCriteria=And(GreaterThan(x,-1.5*D1), LessThan(x,D1/2), GreaterThan(y, 0))
             no_slip = PointwiseBoundaryConstraint(
                 nodes=nodes,
                 geometry=pipe,
@@ -223,7 +231,7 @@ def ffs(designs=[], reynoldsNr=500):
 
             # interior
             lambdafunc=1*tanh(20 * Symbol("sdf"))
-            criteriaHR=And(GreaterThan(x,1.5*-D1), LessThan(x,1.5*D1), GreaterThan(y, 0))
+            criteriaHR=And(GreaterThan(x,2*-D1), LessThan(x,2*D1))
             interior = PointwiseInteriorConstraint(
                 nodes=nodes,
                 geometry=pipe,
@@ -438,13 +446,20 @@ def ffs(designs=[], reynoldsNr=500):
 
                         # var_to_polyvtk(upstreamPressurePoints, './vtp/upstreamPressurePoints')
                         # var_to_polyvtk(downstreamPressurePoints, './vtp/downstreamPressurePoints')
+                        
+                        # ansysUSP = float(parameters[8])
+                        # ansysDSP = float(parameters[6])
+                        
+                        # print(nameString + " USP ", ansysUSP)
+                        # print(nameString + " DSP ", ansysDSP)
 
                         upstreamPressure = PointwiseMonitor(
                             invar=upstreamPressurePoints,
                             # output_names=["p", "ptot"],
                             # metrics={"upstreamPressure" + nameString: lambda var: torch.mean(var["p"]), "upstreamPressureTot" + nameString: lambda var: torch.mean(var["ptot"])},
                             output_names=["p"],
-                            metrics={"upstreamPressure" + nameString: lambda var: torch.mean(var["p"]), "upstreamPressureDiff" + nameString: lambda var: torch.mean(var["p"])-parameters[8]},
+                            # metrics={"upstreamPressure" + nameString: lambda var: torch.mean(var["p"]), "upstreamPressureDiff" + nameString: lambda var: torch.sub(torch.mean(var["p"]), ansysUSP)},
+                            metrics={"upstreamPressure" + nameString: lambda var: torch.mean(var["p"])},
                             nodes=nodes,
                         )
                         domain.add_monitor(upstreamPressure)
@@ -454,7 +469,8 @@ def ffs(designs=[], reynoldsNr=500):
                             # output_names=["p", "ptot"],
                             # metrics={"downstreamPressure" + nameString: lambda var: torch.mean(var["p"]), "downstreamPressureTot" + nameString: lambda var: torch.mean(var["ptot"])},
                             output_names=["p"],
-                            metrics={"downstreamPressure" + nameString: lambda var: torch.mean(var["p"]), "downstreamPressureDiff" + nameString: lambda var: torch.mean(var["p"])-parameters[6]},
+                            # metrics={"downstreamPressure" + nameString: lambda var: torch.mean(var["p"]), "downstreamPressureDiff" + nameString: lambda var: torch.mean(var["p"])-ansysDSP},
+                            metrics={"downstreamPressure" + nameString: lambda var: torch.mean(var["p"])},
                             nodes=nodes,
                         )
                         domain.add_monitor(downstreamPressure)

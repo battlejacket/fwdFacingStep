@@ -83,6 +83,15 @@ def dataConstraint(file_path, ansysVarNames, modulusVarNames, nodes, scales, bat
         # openfoam_outvar_numpy=openfoam_outvar_numpy_t
         
 
+        # for key in openfoam_invar_numpy.keys():
+        #     openfoam_invar_numpy_t[key] = np.copy(openfoam_invar_numpy[key][(openfoam_invar_numpy["x"]<-0.147) & (openfoam_invar_numpy["y"]>-0.187)])
+        #     openfoam_invar_numpy_t[key] = openfoam_invar_numpy_t[key].reshape((openfoam_invar_numpy_t[key].shape[0], 1))
+        # for key in openfoam_outvar_numpy.keys():
+        #     openfoam_outvar_numpy_t[key] = np.copy(openfoam_outvar_numpy[key][(openfoam_invar_numpy["y"]<-0.147) & (openfoam_invar_numpy["y"]>-0.187)])
+        #     openfoam_outvar_numpy_t[key]=openfoam_outvar_numpy_t[key].reshape((openfoam_outvar_numpy_t[key].shape[0], 1))
+        # openfoam_invar_numpy=openfoam_invar_numpy_t
+        # openfoam_outvar_numpy=openfoam_outvar_numpy_t
+
         # print(openfoam_var['x'].size)
         dataConstraint = PointwiseConstraint.from_numpy(
             nodes=nodes, 
