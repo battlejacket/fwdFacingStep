@@ -27,7 +27,8 @@ scheduler:
 
 run_mode: "train"
 
-network_dir : "./physicsOnly_lr5e-4_batches2000"
+network_dir : "./dataPlusPhysics"
+# network_dir : "./physicsOnly_lr5e-4_batches1000_frq16"
 
 # initialization_network_dir : "./dataPlusPhysicsSingleCaseFreq64"
 
@@ -39,7 +40,7 @@ training:
   rec_inference_freq:   1000
   rec_monitor_freq:     1000
   rec_constraint_freq:  1000
-  max_steps : 500000
+  max_steps : 400000
   # max_steps : 600000
   # max_steps : 1000000
   # max_steps : 1200000
@@ -65,7 +66,7 @@ batch_size:
   Interior: 2048
   InteriorHR: 2048
   integralContinuity: 512
-  batchPerEpoch: 2000
+  batchPerEpoch: 1000
   batchesData: 1000
 
 graph:

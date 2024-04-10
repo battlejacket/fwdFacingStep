@@ -180,11 +180,11 @@ def ffs(designs=[], reynoldsNr=500):
             print(eq.equations)
         
         
-        input_keys=[Key("x"), Key("y"), Key("Re_s"), Key("Ho"), Key("Lo")]
-        
+        input_keys_1=[Key("x_1"), Key("y"), Key("Re_s"), Key("Ho"), Key("Lo")]
         output_keys_1=[Key("u_1"), Key("v_1"), Key("p_1")]
+        
         flow_net_1 = FourierNetArch(
-            input_keys=input_keys,
+            input_keys=input_keys_1,
             output_keys=output_keys_1,
             frequencies=("axis", [i/2 for i in range(16)]),
             frequencies_params=("axis", [i/2 for i in range(16)]),
@@ -193,9 +193,11 @@ def ffs(designs=[], reynoldsNr=500):
             adaptive_activations=True,
             )
         
+        input_keys_2=[Key("x_2"), Key("y"), Key("Re_s"), Key("Ho"), Key("Lo")]
         output_keys_2=[Key("u_2"), Key("v_2"), Key("p_2")]
+        
         flow_net_2 = FourierNetArch(
-            input_keys=input_keys,
+            input_keys=input_keys_2,
             output_keys=output_keys_2,
             frequencies=("axis", [i/2 for i in range(64)]),
             frequencies_params=("axis", [i/2 for i in range(64)]),
@@ -204,9 +206,11 @@ def ffs(designs=[], reynoldsNr=500):
             adaptive_activations=True,
             )
         
+        input_keys_3=[Key("x_3"), Key("y"), Key("Re_s"), Key("Ho"), Key("Lo")]
         output_keys_3=[Key("u_3"), Key("v_3"), Key("p_3")]
+        
         flow_net_3 = FourierNetArch(
-            input_keys=input_keys,
+            input_keys=input_keys_3,
             output_keys=output_keys_3,
             frequencies=("axis", [i/2 for i in range(16)]),
             frequencies_params=("axis", [i/2 for i in range(16)]),
@@ -215,32 +219,29 @@ def ffs(designs=[], reynoldsNr=500):
             adaptive_activations=True,
             )
 
-        
-        interface_x = [-2, 2]
-
             
-        limits_x = [-2, 2]
+        limits_x = [-Lo, 0]
         basis_function_1 = 0.5 * (tanh(10 * (0 + limits_x[0] - x)) + tanh(10 * (x + 20 + limits_x[0])))
         basis_function_2 = 0.25 * (tanh(10 * (20 - limits_x[0] - x)) + tanh(10 * (x + 0 - limits_x[0]))) * (tanh(10 * (0 + limits_x[1] - x)) + tanh(10 * (x + 20 + limits_x[1])))
         basis_function_3 = 0.5 * (tanh(10 * (20 -limits_x[1] - x)) + tanh(10 * (x + 0 - limits_x[1])))
 
-        # plot the basis functions for visualization
-        basis_function_1_lf = lambdify(x, basis_function_1, "numpy")
-        basis_function_2_lf = lambdify(x, basis_function_2, "numpy")
-        basis_function_3_lf = lambdify(x, basis_function_3, "numpy")
-        y_vals = np.linspace(-4, 4, 600)
+        # # plot the basis functions for visualization
+        # basis_function_1_lf = lambdify(x, basis_function_1, "numpy")
+        # basis_function_2_lf = lambdify(x, basis_function_2, "numpy")
+        # basis_function_3_lf = lambdify(x, basis_function_3, "numpy")
+        # y_vals = np.linspace(-4, 4, 600)
 
-        out_bf_1 = basis_function_1_lf(y_vals)
-        out_bf_2 = basis_function_2_lf(y_vals)
-        out_bf_3 = basis_function_3_lf(y_vals)
+        # out_bf_1 = basis_function_1_lf(y_vals)
+        # out_bf_2 = basis_function_2_lf(y_vals)
+        # out_bf_3 = basis_function_3_lf(y_vals)
 
-        plt.figure()
-        plt.plot(y_vals, out_bf_1, label="basis_function_1", color="blue")
-        plt.plot(y_vals, out_bf_2, label="basis_function_2", color="green")
-        plt.plot(y_vals, out_bf_3, label="basis_function_3", color="red")
+        # plt.figure()
+        # plt.plot(y_vals, out_bf_1, label="basis_function_1", color="blue")
+        # plt.plot(y_vals, out_bf_2, label="basis_function_2", color="green")
+        # plt.plot(y_vals, out_bf_3, label="basis_function_3", color="red")
 
-        plt.legend()
-        plt.savefig(to_absolute_path("./basis_function_viz.png"))
+        # plt.legend()
+        # plt.savefig(to_absolute_path("./basis_function_viz.png"))
 
         merge_nodes = [Node.from_sympy(Symbol("u_1") * basis_function_1 + Symbol("u_2") *basis_function_2 + Symbol("u_3") * basis_function_3, "u")
             ] + [Node.from_sympy(Symbol("v_1") *basis_function_1 + Symbol("v_2") * basis_function_2 + Symbol("v_3") * basis_function_3, "v")
@@ -265,6 +266,9 @@ def ffs(designs=[], reynoldsNr=500):
             ] + [Node.from_sympy(1*v, "v_d")
             ] + [Node.from_sympy(1*p, "p_d")        
             ] + [Node.from_sympy(p+0.5*rho*(sqrt(u**2 + v**2))**2, "ptot")
+            ] + [Node.from_sympy((x+Lo)/(-L1+Lo), "x_1")
+            ] + [Node.from_sympy((x+Lo)/(Lo), "x_2")
+            ] + [Node.from_sympy(x, "x_3")
             ]
         )
 
@@ -406,52 +410,52 @@ def ffs(designs=[], reynoldsNr=500):
             domain.add_constraint(inletConstraint, "inlet")
         
         quasi = False
-        crit = And(GreaterThan(x,-2*D1), LessThan(x,2*D1))
+        crit = None #And(GreaterThan(x,-2*D1), LessThan(x,2*D1))
         nrPoints=10000
-        output_names=["u", "v", "p", "nu", "Re", "Lo", "Ho"]
+        output_names=["u", "v", "p", "nu", "Re", "Lo", "Ho", "x_1", "x_2", "x_3", "u_1", "u_2", "u_3", "v_1", "v_2", "v_3", "p_1", "p_2", "p_3"]
 
-        # para={Re: 100, Lo: 0.2, Ho: 0.2}
-        # interiorInferencer = PointwiseInferencer(
-        #     nodes=nodes,
-        #     invar=pipe.sample_interior(nr_points=nrPoints, parameterization=para, quasirandom=quasi, criteria=crit),
-        #     output_names=output_names,
-        # )
-        # domain.add_inferencer(interiorInferencer, "interior_" + str(para[Lo]).replace(".", ",") + "_" + str(para[Ho]).replace(".", ",") + "_" + str(para[Re]).replace(".", ","))
-        # noSlipInferencer = PointwiseInferencer(
-        #     nodes=nodes,
-        #     invar=obstacle.sample_boundary(nr_points=500, parameterization=para, quasirandom=quasi, criteria=crit),
-        #     output_names=output_names,
-        # )
-        # domain.add_inferencer(noSlipInferencer, "noSlip_" + str(para[Lo]).replace(".", ",") + "_" + str(para[Ho]).replace(".", ",") + "_" + str(para[Re]).replace(".", ","))
+        para={Re: 100, Lo: 0.5, Ho: 0.2}
+        interiorInferencer = PointwiseInferencer(
+            nodes=nodes,
+            invar=pipe.sample_interior(nr_points=nrPoints, parameterization=para, quasirandom=quasi, criteria=crit),
+            output_names=output_names,
+        )
+        domain.add_inferencer(interiorInferencer, "interior_" + str(para[Lo]).replace(".", ",") + "_" + str(para[Ho]).replace(".", ",") + "_" + str(para[Re]).replace(".", ","))
+        noSlipInferencer = PointwiseInferencer(
+            nodes=nodes,
+            invar=obstacle.sample_boundary(nr_points=500, parameterization=para, quasirandom=quasi, criteria=crit),
+            output_names=output_names,
+        )
+        domain.add_inferencer(noSlipInferencer, "noSlip_" + str(para[Lo]).replace(".", ",") + "_" + str(para[Ho]).replace(".", ",") + "_" + str(para[Re]).replace(".", ","))
         
-        # para={Re: 100, Lo: 0.5, Ho: 0.2}
-        # interiorInferencer = PointwiseInferencer(
-        #     nodes=nodes,
-        #     invar=pipe.sample_interior(nr_points=nrPoints, parameterization=para, quasirandom=quasi, criteria=crit),
-        #     output_names=output_names,
-        # )
-        # domain.add_inferencer(interiorInferencer, "interior_" + str(para[Lo]).replace(".", ",") + "_" + str(para[Ho]).replace(".", ",") + "_" + str(para[Re]).replace(".", ","))
-        # noSlipInferencer = PointwiseInferencer(
-        #     nodes=nodes,
-        #     invar=obstacle.sample_boundary(nr_points=500, parameterization=para, quasirandom=quasi, criteria=crit),
-        #     output_names=output_names,
-        # )
-        # domain.add_inferencer(noSlipInferencer, "noSlip_" + str(para[Lo]).replace(".", ",") + "_" + str(para[Ho]).replace(".", ",") + "_" + str(para[Re]).replace(".", ","))
+        para={Re: 100, Lo: 1, Ho: 0.2}
+        interiorInferencer = PointwiseInferencer(
+            nodes=nodes,
+            invar=pipe.sample_interior(nr_points=nrPoints, parameterization=para, quasirandom=quasi, criteria=crit),
+            output_names=output_names,
+        )
+        domain.add_inferencer(interiorInferencer, "interior_" + str(para[Lo]).replace(".", ",") + "_" + str(para[Ho]).replace(".", ",") + "_" + str(para[Re]).replace(".", ","))
+        noSlipInferencer = PointwiseInferencer(
+            nodes=nodes,
+            invar=obstacle.sample_boundary(nr_points=500, parameterization=para, quasirandom=quasi, criteria=crit),
+            output_names=output_names,
+        )
+        domain.add_inferencer(noSlipInferencer, "noSlip_" + str(para[Lo]).replace(".", ",") + "_" + str(para[Ho]).replace(".", ",") + "_" + str(para[Re]).replace(".", ","))
 
         #------------------------------------------Validators---------------------------------------------------------
         # ansysVarNames = ("Pressure [ Pa ]", "Velocity u [ m s^-1 ]", "Velocity v [ m s^-1 ]", "X [ m ]", "Y [ m ]")
-        ansysVarNames = ("Pressure", "Velocity:0", "Velocity:1", "Points:0", "Points:1")
-        modulusVarNames = ("p", "u", "v", "x", "y")
-        scales = ((0,1), (0,1), (0,1), (0,1), (-0.5,1))
+        # ansysVarNames = ("Pressure", "Velocity:0", "Velocity:1", "Points:0", "Points:1")
+        # modulusVarNames = ("p", "u", "v", "x", "y")
+        # scales = ((0,1), (0,1), (0,1), (0,1), (-0.5,1))
 
-        # for root, dirs, files in walk(to_absolute_path("./ansys/validators100")):
-        #     for name in files:
-        #         # print(path.join(root, name))
-        #         file_path = str(path.join(root, name))
-        #         domain.add_validator(ansysValidator(file_path, ansysVarNames, modulusVarNames, nodes, scales, 1, True), name.split("_")[0])
+        # # for root, dirs, files in walk(to_absolute_path("./ansys/validators100")):
+        # #     for name in files:
+        # #         # print(path.join(root, name))
+        # #         file_path = str(path.join(root, name))
+        # #         domain.add_validator(ansysValidator(file_path, ansysVarNames, modulusVarNames, nodes, scales, 1, True), name.split("_")[0])
         
-        file_path=to_absolute_path("./ansys/data/DP7_550-0,54666666666666663-0,14356666666666665-3,66903-1,12697-1,32202-3,65738-3,15653-4,22086.csv")
-        domain.add_validator(ansysValidator(file_path, ansysVarNames, modulusVarNames, nodes, scales, 1, True), "DP7")
+        # file_path=to_absolute_path("./ansys/data/DP7_550-0,54666666666666663-0,14356666666666665-3,66903-1,12697-1,32202-3,65738-3,15653-4,22086.csv")
+        # domain.add_validator(ansysValidator(file_path, ansysVarNames, modulusVarNames, nodes, scales, 1, True), "DP7")
 
         
         # -----------------------------------------------Monitors-----------------------------------------------

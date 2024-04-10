@@ -60,7 +60,7 @@ nu = Symbol("nu")
 D1 = 1
 L1 = 6*D1
 
-stepRatio = D1-0.67
+stepRatio = D1-0.66
 stepHeight = stepRatio*D1
 
 # stepHeight = 0.5*D1
@@ -154,8 +154,10 @@ def ffs(designs=[], reynoldsNr=500):
         flow_net = FourierNetArch(
             input_keys=input_keys,
             output_keys=output_keys,
-            frequencies=("axis", [i/2 for i in range(32)]),
-            frequencies_params=("axis", [i/2 for i in range(32)]),
+            # frequencies=("axis", [i/2 for i in range(32)]),
+            # frequencies_params=("axis", [i/2 for i in range(32)]),
+            frequencies=("axis", [i/2 for i in range(16)]),
+            frequencies_params=("axis", [i/2 for i in range(16)]),
             adaptive_activations=True,
             )
 
