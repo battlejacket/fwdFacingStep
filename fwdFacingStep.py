@@ -49,9 +49,9 @@ Re = Symbol("Re")
 xPos = Symbol("xPos")
 x, y = Symbol("x"), Symbol("y")
 Lo, Ho = Symbol("Lo"), Symbol("Ho")
-u, v = Symbol("u"), Symbol("v")
+u, v, u_norm = Symbol("u"), Symbol("v"), Symbol("u_norm")
 vel = Symbol("vel")
-p, q = Symbol("p"), Symbol("q")
+p, q, p_norm= Symbol("p"), Symbol("q"), Symbol("p_norm")
 nu = Symbol("nu")
 
 
@@ -60,10 +60,10 @@ nu = Symbol("nu")
 D1 = 1
 L1 = 6*D1
 
-stepRatio = D1-0.66
-stepHeight = stepRatio*D1
+# stepRatio = D1-0.66
+# stepHeight = stepRatio*D1
 
-# stepHeight = 0.5*D1
+stepHeight = 0.5*D1
 
 D2 = D1-stepHeight
 L2 = 12*D1
@@ -76,22 +76,22 @@ rho = 1
 velprof = Um*2*(1-(Abs(y)/(D1/2))**2)
 # velprof2 = (4*Um*2/(D1^2))*(D1*(y)-(y)^2)
 
-# param_ranges = {
-#     Re: (100, 1000),
-#     Lo: (0.1, 1),
-#     Ho: (0.1, 0.5),
-#     }
-
 param_ranges = {
     Re: (100, 1000),
     Lo: (0.1, 1),
-    Ho: (0.165, 0.33),
-    } 
+    Ho: (0.1, 0.5),
+    }
+
+# param_ranges = {
+#     Re: (100, 1000),
+#     Lo: (0.1, 1),
+#     Ho: (0.165, 0.33),
+#     } 
 
 # param_ranges = {
 #     Re: 500,
 #     Lo: 0.5,
-#     Ho: 0.165,
+#     Ho: 0.2,
 #     }
 
 
@@ -121,8 +121,18 @@ def ffs(designs=[], reynoldsNr=500):
 
         pipe -= obstacle
         
+        sizeUHR= 0.1
+        
+        criteriaGeoUHR_step= Rectangle((-sizeUHR*D1, -sizeUHR*D1),(sizeUHR*D1, sizeUHR*D1),parameterization=pr)
+        criteriaGeoUHR_obstacle= Rectangle((-sizeUHR*D1-Lo+Wo/2, -sizeUHR*D1+(0.5-Ho)),(sizeUHR*D1-Lo+Wo/2, sizeUHR*D1+(0.5-Ho)),parameterization=pr)
+        criteriaGeoUHR = criteriaGeoUHR_step+criteriaGeoUHR_obstacle
+        
         def interiorCriteria(invar, params):
             sdf = pipe.sdf(invar, params)
+            return np.greater(sdf["sdf"], 0)
+        
+        def interiorUHRCriteria(invar, params):
+            sdf = criteriaGeoUHR.sdf(invar, params)
             return np.greater(sdf["sdf"], 0)
 
         # var_to_polyvtk(obstacle.sample_boundary(
@@ -139,9 +149,9 @@ def ffs(designs=[], reynoldsNr=500):
         domain = Domain()
 
         # make list of nodes to unroll graph on
-        input_keys=[Key("x"), Key("y"), Key("Re_s"), Key("Ho"), Key("Lo")]
+        input_keys=[Key("x_norm"), Key("y"), Key("Re_norm"), Key("Ho"), Key("Lo")]
         # input_keys=[Key("x"), Key("y")]
-        output_keys=[Key("u"), Key("v"), Key("p")]
+        output_keys=[Key("u_norm"), Key("v"), Key("p_norm")]
 
         ns = NavierStokes(nu=nu, rho=rho, dim=2, time=False)
         # ns_t = NavierStokes_t(nu=nu, rho=rho, dim=2, time=False)
@@ -154,10 +164,13 @@ def ffs(designs=[], reynoldsNr=500):
         flow_net = FourierNetArch(
             input_keys=input_keys,
             output_keys=output_keys,
-            # frequencies=("axis", [i/2 for i in range(32)]),
-            # frequencies_params=("axis", [i/2 for i in range(32)]),
-            frequencies=("axis", [i/2 for i in range(16)]),
-            frequencies_params=("axis", [i/2 for i in range(16)]),
+            frequencies=("axis", [i/2 for i in range(32)]),
+            frequencies_params=("axis", [i/2 for i in range(32)]),
+            # frequencies=("axis", [i/2 for i in range(16)]),
+            # frequencies_params=("axis", [i/2 for i in range(16)]),
+            # layer_size=256,
+            layer_size=512,
+            nr_layers=6,
             adaptive_activations=True,
             )
 
@@ -167,11 +180,16 @@ def ffs(designs=[], reynoldsNr=500):
             + normal_dot_vel.make_nodes()
             # + ns_t.make_nodes()
             + [flow_net.make_node(name="flow_network")
-            ] + [Node.from_sympy(Re/1213, "Re_s")
+            ] + [Node.from_sympy(Re/1000, "Re_norm")
             ] + [Node.from_sympy(rho*Um*D1/Re, "nu")
             ] + [Node.from_sympy(1*u, "u_d")
             ] + [Node.from_sympy(1*v, "v_d")
             ] + [Node.from_sympy(1*p, "p_d")        
+            ] + [Node.from_sympy(x/12, "x_norm")        
+            ] + [Node.from_sympy(3*u_norm, "u")        
+            ] + [Node.from_sympy(10*p_norm, "p")        
+            ] + [Node.from_sympy(1*(0.5 + 0.5*tanh(20 * (Symbol("sdf")-0.1))), "lambda_interior")        
+            # ] + [Node.from_sympy(1*(0.5 + 0.5*tanh(30 * (Symbol("sdf")-0.07))), "lambda_interior")        
             ] + [Node.from_sympy(p+0.5*rho*(sqrt(u**2 + v**2))**2, "ptot")
             ]
         )
@@ -232,7 +250,9 @@ def ffs(designs=[], reynoldsNr=500):
 
 
             # interior
-            lambdafunc=1*tanh(20 * Symbol("sdf"))
+            # lambdafunc=0.5 + 0.5*tanh(20 * Symbol("sdf"))
+            offset=0.1
+            lambdafunc=1*(0.5 + 0.5*tanh(20 * (Symbol("sdf")-offset)))
             criteriaHR=And(GreaterThan(x,2*-D1), LessThan(x,2*D1))
             interior = PointwiseInteriorConstraint(
                 nodes=nodes,
@@ -266,19 +286,35 @@ def ffs(designs=[], reynoldsNr=500):
                 parameterization=pr,
             )
             domain.add_constraint(interiorHR, "interiorHR")
+            
+            # interiorUHR = PointwiseInteriorConstraint(
+            #     nodes=nodes,
+            #     geometry=pipe,
+            #     outvar={"continuity": 0, "momentum_x": 0, "momentum_y": 0},
+            #     batch_size=cfg.batch_size.InteriorUHR,
+            #     lambda_weighting={
+            #         "continuity": lambdafunc,
+            #         "momentum_x": lambdafunc,
+            #         "momentum_y": lambdafunc,
+            #     },
+            #     criteria=interiorUHRCriteria,
+            #     batch_per_epoch=cfg.batch_size.batchPerEpoch,
+            #     parameterization=pr,
+            # )
+            # domain.add_constraint(interiorUHR, "interiorUHR")
 
             # integral continuity
-            integralLimitsHR = (-1.5*D1, 1.5*D1)
+            integralLimitsHR = (-2*D1, 2*D1)
             integral_continuityHR = IntegralBoundaryConstraint(
                 nodes=nodes,
                 geometry=integralPlane,
                 # geometry=pipe,
                 outvar={"normal_dot_vel": Um*2*(1 - (1/3)/(D1**2))},
-                batch_size=4,
+                batch_size=5,
                 integral_batch_size=cfg.batch_size.integralContinuity,
                 lambda_weighting={"normal_dot_vel": 0.1},
                 parameterization={**param_ranges, **{xPos: integralLimitsHR}},
-                # fixed_dataset=False,
+                fixed_dataset=False,
                 criteria=interiorCriteria
             )
             domain.add_constraint(integral_continuityHR, "integral_continuityHR")
@@ -291,8 +327,8 @@ def ffs(designs=[], reynoldsNr=500):
                 batch_size=2,
                 integral_batch_size=cfg.batch_size.integralContinuity,
                 lambda_weighting={"normal_dot_vel": 0.1},
-                parameterization={**param_ranges, **{xPos:(-L1, integralLimitsHR[0])}},
-                # fixed_dataset=False,
+                parameterization={**param_ranges, **{xPos: (-L1, integralLimitsHR[0])}},
+                fixed_dataset=False,
                 criteria=interiorCriteria
             )
             domain.add_constraint(integral_continuityUS, "integral_continuityUS")
@@ -302,11 +338,11 @@ def ffs(designs=[], reynoldsNr=500):
                 geometry=integralPlane,
                 # geometry=pipe,
                 outvar={"normal_dot_vel": Um*2*(1 - (1/3)/(D1**2))},
-                batch_size=2,
+                batch_size=3,
                 integral_batch_size=cfg.batch_size.integralContinuity,
                 lambda_weighting={"normal_dot_vel": 0.1},
-                parameterization={**param_ranges, **{xPos:(integralLimitsHR[1], L2)}},
-                # fixed_dataset=False,
+                parameterization={**param_ranges, **{xPos: (integralLimitsHR[1], L2)}},
+                fixed_dataset=False,
                 criteria=interiorCriteria
             )
             domain.add_constraint(integral_continuityDS, "integral_continuityDS")
@@ -346,31 +382,32 @@ def ffs(designs=[], reynoldsNr=500):
             domain.add_constraint(inletConstraint, "inlet")
         
         quasi = False
-        crit = And(GreaterThan(x,-2*D1), LessThan(x,2*D1))
+        crit = And(GreaterThan(x,-1.5*D1), LessThan(x,1*D1))
         nrPoints=10000
-        output_names=["u", "v", "p", "nu", "Re", "Lo", "Ho"]
+        # output_names=["u", "v", "p", "nu", "Re", "Lo", "Ho"]
+        # output_names=["u", "v", "p", "nu", "Re", "Lo", "Ho", "x_1", "x_2", "x_3", "u_1", "u_2", "u_3", "v_1", "v_2", "v_3", "p_1", "p_2", "p_3", "bf1", "bf2", "bf3"]
+        output_names=["u", "v", "p", "continuity", "momentum_x", "momentum_y", "lambda_interior"]
 
-        # para={Re: 100, Lo: 0.2, Ho: 0.2}
-        # interiorInferencer = PointwiseInferencer(
-        #     nodes=nodes,
-        #     invar=pipe.sample_interior(nr_points=nrPoints, parameterization=para, quasirandom=quasi, criteria=crit),
-        #     output_names=output_names,
-        # )
-        # domain.add_inferencer(interiorInferencer, "interior_" + str(para[Lo]).replace(".", ",") + "_" + str(para[Ho]).replace(".", ",") + "_" + str(para[Re]).replace(".", ","))
-        # noSlipInferencer = PointwiseInferencer(
-        #     nodes=nodes,
-        #     invar=obstacle.sample_boundary(nr_points=500, parameterization=para, quasirandom=quasi, criteria=crit),
-        #     output_names=output_names,
-        # )
-        # domain.add_inferencer(noSlipInferencer, "noSlip_" + str(para[Lo]).replace(".", ",") + "_" + str(para[Ho]).replace(".", ",") + "_" + str(para[Re]).replace(".", ","))
+        para={Re: 200, Lo: 0.4, Ho: 0.4}
+        interiorInferencer = PointwiseInferencer(
+            nodes=nodes,
+            invar=pipe.sample_interior(nr_points=nrPoints, parameterization=para, quasirandom=quasi, criteria=crit),
+            output_names=output_names,
+            requires_grad=True,
+        )
+        domain.add_inferencer(interiorInferencer, "interior_" + str(para[Lo]).replace(".", ",") + "_" + str(para[Ho]).replace(".", ",") + "_" + str(para[Re]).replace(".", ","))
         
-        # para={Re: 100, Lo: 0.5, Ho: 0.2}
-        # interiorInferencer = PointwiseInferencer(
-        #     nodes=nodes,
-        #     invar=pipe.sample_interior(nr_points=nrPoints, parameterization=para, quasirandom=quasi, criteria=crit),
-        #     output_names=output_names,
-        # )
-        # domain.add_inferencer(interiorInferencer, "interior_" + str(para[Lo]).replace(".", ",") + "_" + str(para[Ho]).replace(".", ",") + "_" + str(para[Re]).replace(".", ","))
+        
+        para={Re: 900, Lo: 0.4, Ho: 0.4}
+        interiorInferencer = PointwiseInferencer(
+            nodes=nodes,
+            invar=pipe.sample_interior(nr_points=nrPoints, parameterization=para, quasirandom=quasi, criteria=crit),
+            output_names=output_names,
+            requires_grad=True,
+        )
+        domain.add_inferencer(interiorInferencer, "interior_" + str(para[Lo]).replace(".", ",") + "_" + str(para[Ho]).replace(".", ",") + "_" + str(para[Re]).replace(".", ","))
+        
+        
         # noSlipInferencer = PointwiseInferencer(
         #     nodes=nodes,
         #     invar=obstacle.sample_boundary(nr_points=500, parameterization=para, quasirandom=quasi, criteria=crit),
@@ -380,18 +417,25 @@ def ffs(designs=[], reynoldsNr=500):
 
         #------------------------------------------Validators---------------------------------------------------------
         # ansysVarNames = ("Pressure [ Pa ]", "Velocity u [ m s^-1 ]", "Velocity v [ m s^-1 ]", "X [ m ]", "Y [ m ]")
-        ansysVarNames = ("Pressure", "Velocity:0", "Velocity:1", "Points:0", "Points:1")
-        modulusVarNames = ("p", "u", "v", "x", "y")
+        ansysVarNames = ["Pressure", "Velocity:0", "Velocity:1", "Points:0", "Points:1"]
+        modulusVarNames = ["p", "u", "v", "x", "y"]
         scales = ((0,1), (0,1), (0,1), (0,1), (-0.5,1))
+        additionalVariables = None #{"continuity": 0, "momentum_x": 0, "momentum_y": 0}
 
         for root, dirs, files in walk(to_absolute_path("./ansys/validators")):
             for name in files:
                 # print(path.join(root, name))
                 file_path = str(path.join(root, name))
-                domain.add_validator(ansysValidator(file_path, ansysVarNames, modulusVarNames, nodes, scales, 1, True), name.split("_")[0])
-        
-        # file_path=to_absolute_path("./ansys/data/DP0_500-0,5-0,165.csv")
-        # domain.add_validator(ansysValidator(file_path, ansysVarNames, modulusVarNames, nodes, scales, 1, True), "DP0")
+                # parameters = name.split("_")[1].split(".")[0].replace(",", ".").split("-")
+                # shortName = name.split("_")[0] + "_"
+                # for parameter in parameters:
+                #     parameterF = round(float(parameter), 3)
+                #     shortName += "%.3f" % parameterF + "-"
+                domain.add_validator(ansysValidator(file_path=file_path, ansysVarNames=ansysVarNames, modulusVarNames=modulusVarNames, nodes=nodes, scales=scales, skiprows=1, param=True, additionalVariables=additionalVariables), name.split("_")[0])
+       
+        # file_path=to_absolute_path("./ansys/validators/DP154_482,49999999999994-0,38-0,11000000000000001.csv")
+        # name="DP154"
+        # domain.add_validator(ansysValidator(file_path=file_path, ansysVarNames=ansysVarNames, modulusVarNames=modulusVarNames, nodes=nodes, scales=scales, skiprows=1, param=True, additionalVariables=additionalVariables), name)
 
         
         # -----------------------------------------------Monitors-----------------------------------------------
@@ -437,13 +481,19 @@ def ffs(designs=[], reynoldsNr=500):
                 reader = csv.reader(ansysFile, delimiter=",")
                 for i, parameters in enumerate(reader):
                     if i != 0:
-                        nameString = "_" + parameters[0].replace(" ", "") + "_" + parameters[1] + "_" + parameters[2] + "_" + parameters[3]
+                        # nameString = "_" + parameters[0].replace(" ", "") + "_" + parameters[1] + "_" + parameters[2] + "_" + parameters[3]
+                        
+                        shortName = "_" + parameters[0].replace(" ", "") + "_"
+                        for parameter in parameters[1:]:
+                            parameterF = round(float(parameter), 3)
+                            shortName += "%.3f" % parameterF + "-"
+                        
                         parameterRange={
                             Re: float(parameters[1]),  
                             Lo: float(parameters[2]),
                             Ho: float(parameters[3]),
                         }
-                        upstreamPressurePoints   = integralPlane.sample_boundary(nrPoints, parameterization={**parameterRange, **{xPos:-4*D1}})
+                        upstreamPressurePoints   = integralPlane.sample_boundary(nrPoints, criteria=interiorCriteria, parameterization={**parameterRange, **{xPos:-4*D1}})
                         downstreamPressurePoints = integralPlane.sample_boundary(nrPoints, criteria=interiorCriteria, parameterization={**parameterRange, **{xPos:4*D1}})
 
                         # var_to_polyvtk(upstreamPressurePoints, './vtp/upstreamPressurePoints')
@@ -461,7 +511,8 @@ def ffs(designs=[], reynoldsNr=500):
                             # metrics={"upstreamPressure" + nameString: lambda var: torch.mean(var["p"]), "upstreamPressureTot" + nameString: lambda var: torch.mean(var["ptot"])},
                             output_names=["p"],
                             # metrics={"upstreamPressure" + nameString: lambda var: torch.mean(var["p"]), "upstreamPressureDiff" + nameString: lambda var: torch.sub(torch.mean(var["p"]), ansysUSP)},
-                            metrics={"upstreamPressure" + nameString: lambda var: torch.mean(var["p"])},
+                            metrics={"upstreamPressure" + shortName + "=" + parameters[6]: lambda var: torch.mean(var["p"])},
+                            # metrics={"upstreamPressure" + nameString: lambda var: torch.mean(var["p"])},
                             nodes=nodes,
                         )
                         domain.add_monitor(upstreamPressure)
@@ -472,7 +523,8 @@ def ffs(designs=[], reynoldsNr=500):
                             # metrics={"downstreamPressure" + nameString: lambda var: torch.mean(var["p"]), "downstreamPressureTot" + nameString: lambda var: torch.mean(var["ptot"])},
                             output_names=["p"],
                             # metrics={"downstreamPressure" + nameString: lambda var: torch.mean(var["p"]), "downstreamPressureDiff" + nameString: lambda var: torch.mean(var["p"])-ansysDSP},
-                            metrics={"downstreamPressure" + nameString: lambda var: torch.mean(var["p"])},
+                            metrics={"downstreamPressure" + shortName + "=" + parameters[5]: lambda var: torch.mean(var["p"])},
+                            # metrics={"downstreamPressure" + nameString: lambda var: torch.mean(var["p"])},
                             nodes=nodes,
                         )
                         domain.add_monitor(downstreamPressure)

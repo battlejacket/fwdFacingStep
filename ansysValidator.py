@@ -13,7 +13,7 @@ x, y = Symbol("x"), Symbol("y")
 Lo, Ho = Symbol("Lo"), Symbol("Ho")
 
 
-def ansysValidator(file_path, ansysVarNames, modulusVarNames, nodes, scales, skiprows=1, param=False, nonDim=None):
+def ansysValidator(file_path, ansysVarNames, modulusVarNames, nodes, scales, skiprows=1, param=False, nonDim=None, additionalVariables = None):
     if os.path.exists(to_absolute_path(file_path)):
         mapping = {}
         for ansVarName, modulusVarName in zip(ansysVarNames, modulusVarNames):
@@ -44,6 +44,8 @@ def ansysValidator(file_path, ansysVarNames, modulusVarNames, nodes, scales, ski
             # openfoam_var.update({"momentum_x": np.full_like(openfoam_var["x"], 0)})
             # openfoam_var.update({"momentum_y": np.full_like(openfoam_var["x"], 0)}
         
+
+        
         for key, scale in zip(modulusVarNames, scales):
             openfoam_var[key] += scale[0]
             openfoam_var[key] /= scale[1]
@@ -51,6 +53,13 @@ def ansysValidator(file_path, ansysVarNames, modulusVarNames, nodes, scales, ski
 
         invarKeys = ["x", "y", "Re", "Lo", "Ho"]
         outvarKeys = modulusVarNames[:-2]
+        
+        if additionalVariables!=None:
+            for key, value in additionalVariables.items():
+                openfoam_var.update({key: np.full_like(openfoam_var["x"], value)})
+                outvarKeys.append(key)
+
+        
         
 
         openfoam_invar_numpy = {
@@ -64,11 +73,17 @@ def ansysValidator(file_path, ansysVarNames, modulusVarNames, nodes, scales, ski
             key: value for key, value in openfoam_var.items() if key in outvarKeys
         }
 
+        if additionalVariables!=None:
+            batchSize= 3000
+        else:
+            batchSize = openfoam_invar_numpy['x'].size
+        
         openfoam_validator = PointwiseValidator(
             nodes=nodes,
             invar=openfoam_invar_numpy,
             true_outvar=openfoam_outvar_numpy,
-            batch_size=openfoam_invar_numpy['x'].size,
+            # batch_size=openfoam_invar_numpy['x'].size,
+            batch_size=batchSize,
             # plotter=CustomValidatorPlotter(),
             requires_grad=True,
         )
