@@ -1,10 +1,4 @@
-﻿# 
-# 04/11/2024 09:16:18
-# The parameters defined in the project are:
-# ,P4 - Re,P6 - Ob_pos [m],P7 - Ob_H [m],P1 - Delta Cp,P8 - DSP [Pa],P10 - USP [Pa]
-# 
-# The following header line defines the name of the columns by reference to the parameters.
-Name,P4,P6,P7,P1,P8,P10
+﻿Name,P4 - Re,P6 - Ob_pos [m],P7 - Ob_H [m],P1 - Delta Cp,P8 - DSP [Pa],P10 - USP [Pa]
 DP 0,500,0.2,0.5,10.9906,2.29719,7.79248
 DP 1,718.18181818181733,0.43636363636363645,0.10181818181818182,9.91042,1.6719,6.62711
 DP 2,1009.0909090909065,0.83636363636363509,0.10545454545454547,9.1683,1.26478,5.84893

@@ -21,7 +21,7 @@ import csv
 import numpy as np
 
 
-def csv_to_dict(filename, mapping=None, delimiter=",", skiprows=0):
+def csv_to_dict(filename, mapping=None, delimiter=",", skiprows=0, mod=1):
     """
     reads a csv file to a dictionary of columns
 
@@ -56,6 +56,7 @@ def csv_to_dict(filename, mapping=None, delimiter=",", skiprows=0):
     # set dictionary
     csv_dict = {}
     for i, name in enumerate(first_line):
+      if i%mod==0:
         if mapping is not None:
             if name.strip() in mapping.keys():
                 csv_dict[mapping[name.strip()]] = values[:, i : i + 1]

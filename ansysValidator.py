@@ -7,7 +7,6 @@ import numpy as np
 from modulus.sym.domain.validator import PointwiseValidator
 
 
-
 Re = Symbol("Re")
 x, y = Symbol("x"), Symbol("y")
 Lo, Ho = Symbol("Lo"), Symbol("Ho")
@@ -21,14 +20,16 @@ def ansysValidator(file_path, ansysVarNames, modulusVarNames, nodes, scales, ski
 
         openfoam_var = csv_to_dict(to_absolute_path(file_path), mapping, skiprows=skiprows)
 
-        if param:
-            parameters = file_path.split("_")[1].split(".")[0].replace(",", ".").split("-")
+        if param!=False:
+            parameterRanges = param
+                        
+            # parameters = file_path.split("_")[1].split(".")[0].replace(",", ".").split("-")
 
-            parameterRanges = {
-                Re: float(parameters[0]),  
-                Lo: float(parameters[1]),
-                Ho: float(parameters[2]),
-            } 
+            # parameterRanges = {
+            #     Re: float(parameters[0]),  
+            #     Lo: float(parameters[1]),
+            #     Ho: float(parameters[2]),
+            # } 
 
 
             # parameterRanges = {

@@ -16,7 +16,7 @@
 from os import walk, path
 import csv
 
-from sympy import Symbol, Eq, Abs, StrictGreaterThan, StrictLessThan, And, tanh, Or, GreaterThan, LessThan, Not, sqrt
+from sympy import Symbol, Eq, Abs, StrictGreaterThan, StrictLessThan, And, tanh, Or, GreaterThan, LessThan, Not, sqrt, lambdify
 import numpy as np
 import torch
 
@@ -189,12 +189,15 @@ def ffs(designs=[], reynoldsNr=500):
             )
 
             
-        limits_x = [-Lo, 0]
-        overlap = 40
-        # overlap = 20
-        basis_function_1 = 0.5 * (tanh(10 * (0 + limits_x[0] - x)) + tanh(10 * (x + overlap + limits_x[0])))
-        basis_function_2 = 0.25 * (tanh(10 * (overlap - limits_x[0] - x)) + tanh(10 * (x + 0 - limits_x[0]))) * (tanh(10 * (0 + limits_x[1] - x)) + tanh(10 * (x + overlap + limits_x[1])))
-        basis_function_3 = 0.5 * (tanh(10 * (overlap -limits_x[1] - x)) + tanh(10 * (x + 0 - limits_x[1])))
+        limits_x = [-Lo+Wo/2, 0+Wo/2]
+        maxLen = 20
+        grad = 10
+        gradC = 10
+        overlap=0.0
+        # overlap=0.1
+        basis_function_1 = 0.5 * (tanh(grad * (0 + limits_x[0] - x)) + tanh(grad * (x + maxLen + limits_x[0])))
+        basis_function_2 = 0.25 * (tanh(gradC * (maxLen - (limits_x[0]-overlap) - x)) + tanh(gradC * (x + 0 - (limits_x[0]-overlap)))) * (tanh(gradC * (0 + (limits_x[1]+overlap) - x)) + tanh(gradC * (x + maxLen + (limits_x[1]+overlap))))
+        basis_function_3 = 0.5 * (tanh(grad * (maxLen -limits_x[1] - x)) + tanh(grad * (x + 0 - limits_x[1])))
 
         # # plot the basis functions for visualization
         # basis_function_1_lf = lambdify(x, basis_function_1, "numpy")
@@ -360,6 +363,7 @@ def ffs(designs=[], reynoldsNr=500):
 
             # integral continuity
             integralLimitsHR = (-2*D1, 2*D1)
+            # integralLimitsHR = (-Lo*D1, 0.5*D1)
             integral_continuityHR = IntegralBoundaryConstraint(
                 nodes=nodes,
                 geometry=integralPlane,
@@ -437,12 +441,13 @@ def ffs(designs=[], reynoldsNr=500):
             domain.add_constraint(inletConstraint, "inlet")
         
         quasi = False
-        crit = And(GreaterThan(x,-1.5*D1), LessThan(x,1*D1))
-        nrPoints=10000
+        crit = And(GreaterThan(x,-4*D1), LessThan(x,4*D1))
+        nrPoints=20000
         # output_names=["u", "v", "p", "nu", "Re", "Lo", "Ho"]
-        # output_names=["u", "v", "p", "nu", "Re", "Lo", "Ho", "x_1", "x_2", "x_3", "u_1", "u_2", "u_3", "v_1", "v_2", "v_3", "p_1", "p_2", "p_3", "bf1", "bf2", "bf3"]
+        output_names_decomp=["x_1", "x_2", "x_3", "u_1", "u_2", "u_3", "v_1", "v_2", "v_3", "p_1", "p_2", "p_3", "bf1", "bf2", "bf3"]
         output_names=["u", "v", "p", "continuity", "momentum_x", "momentum_y", "lambda_interior"]
-
+        output_names+=output_names_decomp
+        
         para={Re: 200, Lo: 0.4, Ho: 0.4}
         interiorInferencer = PointwiseInferencer(
             nodes=nodes,
@@ -453,7 +458,7 @@ def ffs(designs=[], reynoldsNr=500):
         domain.add_inferencer(interiorInferencer, "interior_" + str(para[Lo]).replace(".", ",") + "_" + str(para[Ho]).replace(".", ",") + "_" + str(para[Re]).replace(".", ","))
         
         
-        para={Re: 900, Lo: 0.4, Ho: 0.4}
+        para={Re: 900, Lo: 1, Ho: 0.4}
         interiorInferencer = PointwiseInferencer(
             nodes=nodes,
             invar=pipe.sample_interior(nr_points=nrPoints, parameterization=para, quasirandom=quasi, criteria=crit),
