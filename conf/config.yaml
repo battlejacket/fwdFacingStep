@@ -22,16 +22,14 @@ defaults :
   - _self_
 scheduler:
   decay_rate: 0.95
-  decay_steps: 4000
-  # decay_steps: 3000
+  decay_steps: 6000
+  # decay_steps: 6000
 
-run_mode: "eval"
+run_mode: "train"
 
 #./ = outputs/fwdFacingStep
 
-network_dir : "./physicsOnly@500k"
-# network_dir : "./dataOnly@300k"
-# network_dir : "./dataPlusPhysics3600"
+network_dir: "dataOnlyCrit"
 
 # initialization_network_dir : "./"
 
@@ -43,21 +41,12 @@ training:
   rec_inference_freq:   10000
   rec_monitor_freq:     1000
   rec_constraint_freq:  10000
-  max_steps : 300000
-  # max_steps : 400000
-  # max_steps : 500000
-  # max_steps : 600000
+  max_steps: 300000
 
-# stop_criterion:
-#     - metric: 'stopCriteria'
-#     - min_delta: 0.01
-#     - patience: 5000
-#     - mode: 'min'
-#     - freq: 2000
-#     - strict: true
 
 custom:
   useData: True
+  dataPressureOnly: False
   usePhysics: False
 
 
@@ -70,7 +59,7 @@ batch_size:
   InteriorHR: 2048
   # InteriorUHR: 1024
   integralContinuity: 512
-  batchPerEpoch: 1000
+  batchPerEpoch: 2000
   batchesData: 3600
   # batchesData: 1800
 

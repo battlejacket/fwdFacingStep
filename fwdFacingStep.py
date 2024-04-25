@@ -31,10 +31,12 @@ from modulus.sym.domain.constraint import (
     PointwiseBoundaryConstraint,
     PointwiseInteriorConstraint,
     IntegralBoundaryConstraint,
+    PointwiseConstraint,
 )
 
 from modulus.sym.domain.inferencer import PointwiseInferencer
 from modulus.sym.domain.monitor import PointwiseMonitor
+from modulus.sym.domain.validator import PointwiseValidator
 from modulus.sym.key import Key
 from modulus.sym.node import Node
 from modulus.sym.eq.pdes.navier_stokes import NavierStokes
@@ -44,6 +46,7 @@ from modulus.sym.utils.io.vtk import var_to_polyvtk
 from ansysValidator import ansysValidator
 from dataConstraint import dataConstraint
 from readParameters import readParametersFromFileName, readParametersFromCSV
+from datasetFromCsv import datasetFromCsv
 
 Re = Symbol("Re")
 xPos = Symbol("xPos")
@@ -96,9 +99,9 @@ param_ranges = {
 
 
 
-def ffs(designs=[], reynoldsNr=500):
-
-    @modulus.sym.main(config_path="conf", config_name="config")
+def ffs(designs=[], reynoldsNr=500, config_path="conf", config_name="config"):
+    print(config_path)
+    @modulus.sym.main(config_path=config_path, config_name=config_name)
     def run(cfg: ModulusConfig) -> None:
 
         pr = Parameterization(param_ranges)
@@ -329,12 +332,37 @@ def ffs(designs=[], reynoldsNr=500):
 
         # -----------------------------------------------Data Constraints------------------------------------------------
         if cfg.run_mode=="train" and cfg.custom.useData:
-            # ansysVarNames = ("Pressure [ Pa ]", "Velocity u [ m s^-1 ]", "Velocity v [ m s^-1 ]", "X [ m ]", "Y [ m ]")
-            ansysVarNames = ("Pressure", "Velocity:0", "Velocity:1", "Points:0", "Points:1")
-            modulusVarNames = ("p_d", "u_d", "v_d", "x", "y")
-            scales = ((0,1), (0,1), (0,1), (0,1), (-0.5,1))
-            additionalConstraints=None #{"continuity": 0, "momentum_x": 0, "momentum_y": 0}
-
+            ansysInvarNames = ("Points:0", "Points:1")
+            modulusInvarNames = ("x", "y")
+            if cfg.custom.pressureDataOnly:
+                xLimits = [-4, -2, 0, 3, 6, 9]
+                xOffset = 0.025
+                ansysOutvarNames = ("Pressure")
+                modulusOutvarNames = ("p_d")
+                scales = {"p_d": (0,1), "x": (0,1), "y": (-0.5,1)}
+                lambdaWeighting = {"p_d": 0.1}
+                additionalConstraints=None #{"continuity": 0, "momentum_x": 0, "momentum_y": 0}
+                criteria=And(
+                    LessThan(y,0.0001),
+                    Or(
+                        And(GreaterThan(x, xLimits[0]-xOffset), LessThan(x, xLimits[0]+xOffset)),
+                        And(GreaterThan(x, xLimits[1]-xOffset), LessThan(x, xLimits[1]+xOffset)),
+                        And(GreaterThan(x, xLimits[2]-xOffset), LessThan(x, xLimits[2]+xOffset)),
+                        And(GreaterThan(x, xLimits[3]-xOffset), LessThan(x, xLimits[3]+xOffset)),
+                        And(GreaterThan(x, xLimits[4]-xOffset), LessThan(x, xLimits[4]+xOffset)),
+                        And(GreaterThan(x, xLimits[5]-xOffset), LessThan(x, xLimits[5]+xOffset)),
+                        )
+                )
+                batches = 1
+            else:
+                ansysOutvarNames = ("Pressure", "Velocity:0", "Velocity:1")
+                modulusOutvarNames = ("p_d", "u_d", "v_d")
+                scales = {"p_d": (0,1), "u_d": (0,1), "v_d": (0,1), "x": (0,1), "y": (-0.5,1)}
+                lambdaWeighting = {"p_d": 0.1, "u_d": 0.1, "v_d": 0.1}
+                additionalConstraints=None #{"continuity": 0, "momentum_x": 0, "momentum_y": 0}
+                criteria=None
+                batches = cfg.batch_size.batchesData
+                
             for root, dirs, files in walk(to_absolute_path("./ansys/data100")):
                 for name in files:
                     dataParameterRange, shortName = readParametersFromFileName(fileName=name, parameterDict=param_ranges, generateNameString=True)
@@ -344,8 +372,29 @@ def ffs(designs=[], reynoldsNr=500):
                         continue
                     else:
                         # print(path.join(root, name))
-                        file_path = str(path.join(root, name))
-                        domain.add_constraint(dataConstraint(file_path, ansysVarNames, modulusVarNames, nodes, scales, batches=cfg.batch_size.batchesData, skiprows=1, param=dataParameterRange, additionalConstraints=additionalConstraints), shortName)
+                        filePath = str(path.join(root, name))
+                        dataInvar, dataOutvar, lambdaWeights = datasetFromCsv(
+                            filePath=filePath,
+                            csvInvarNames=ansysInvarNames,
+                            csvOutvarNames=ansysOutvarNames,
+                            modulusInvarNames=modulusInvarNames,
+                            modulusOutvarNames=modulusOutvarNames,
+                            scales=scales,
+                            parameterRanges=dataParameterRange,
+                            criteria=criteria,
+                            additionalConstraints=additionalConstraints,
+                            lambdaWeighting=lambdaWeighting,
+                            )
+                            
+                        dataConstraint = PointwiseConstraint.from_numpy(
+                            nodes=nodes, 
+                            invar=dataInvar, 
+                            outvar=dataOutvar, 
+                            batch_size=int(dataInvar['x'].size/batches),
+                            lambda_weighting=lambdaWeights
+                        )
+                        
+                        domain.add_constraint(dataConstraint, shortName)
 
             # file_path = to_absolute_path("./ansys/data100/DP5_999,9999999999975-0,64727272727272711-0,11636363636363636.csv")
             # dataParameterRange, shortName = readParametersFromFileName(fileName="DP5_999,9999999999975-0,64727272727272711-0,11636363636363636.csv", parameterDict=param_ranges, generateNameString=True)
@@ -402,18 +451,48 @@ def ffs(designs=[], reynoldsNr=500):
 
         #------------------------------------------Validators---------------------------------------------------------
         # ansysVarNames = ("Pressure [ Pa ]", "Velocity u [ m s^-1 ]", "Velocity v [ m s^-1 ]", "X [ m ]", "Y [ m ]")
-        ansysVarNames = ["Pressure", "Velocity:0", "Velocity:1", "Points:0", "Points:1"]
-        modulusVarNames = ["p", "u", "v", "x", "y"]
-        scales = ((0,1), (0,1), (0,1), (0,1), (-0.5,1))
-        additionalVariables = None #{"continuity": 0, "momentum_x": 0, "momentum_y": 0}
+        ansysInvarNames = ("Points:0", "Points:1")
+        ansysOutvarNames = ("Pressure", "Velocity:0", "Velocity:1")
+        modulusInvarNames = ("x", "y")
+        modulusOutvarNames = ("p", "u", "v")
+        scales = {"p": (0,1), "u": (0,1), "v": (0,1), "x": (0,1), "y": (-0.5,1)}
 
         for root, dirs, files in walk(to_absolute_path("./ansys/validators")):
             for name in files:
+                dataParameterRange, shortName = readParametersFromFileName(fileName=name, parameterDict=param_ranges, generateNameString=True)
                 # print(path.join(root, name))
-                file_path = str(path.join(root, name))
-                validatorParameterRange, shortName = readParametersFromFileName(fileName=name, parameterDict=param_ranges, generateNameString=True)
-                # shortName=name.split("_")[0]
-                domain.add_validator(ansysValidator(file_path=file_path, ansysVarNames=ansysVarNames, modulusVarNames=modulusVarNames, nodes=nodes, scales=scales, skiprows=1, param=validatorParameterRange, additionalVariables=additionalVariables), shortName)
+                filePath = str(path.join(root, name))
+                dataInvar, dataOutvar = datasetFromCsv(
+                    filePath=filePath,
+                    csvInvarNames=ansysInvarNames,
+                    csvOutvarNames=ansysOutvarNames,
+                    modulusInvarNames=modulusInvarNames,
+                    modulusOutvarNames=modulusOutvarNames,
+                    scales=scales,
+                    parameterRanges=dataParameterRange,
+                    criteria=None)
+                dataValidator = PointwiseValidator(
+                    nodes=nodes, 
+                    invar=dataInvar, 
+                    true_outvar=dataOutvar, 
+                    batch_size=dataInvar['x'].size,
+                    )
+                
+                domain.add_validator(dataValidator, shortName)
+        
+        # ansysVarNames = ("Pressure [ Pa ]", "Velocity u [ m s^-1 ]", "Velocity v [ m s^-1 ]", "X [ m ]", "Y [ m ]")
+        # ansysVarNames = ["Pressure", "Velocity:0", "Velocity:1", "Points:0", "Points:1"]
+        # modulusVarNames = ["p", "u", "v", "x", "y"]
+        # scales = ((0,1), (0,1), (0,1), (0,1), (-0.5,1))
+        # additionalVariables = None #{"continuity": 0, "momentum_x": 0, "momentum_y": 0}
+
+        # for root, dirs, files in walk(to_absolute_path("./ansys/validators")):
+        #     for name in files:
+        #         # print(path.join(root, name))
+        #         file_path = str(path.join(root, name))
+        #         validatorParameterRange, shortName = readParametersFromFileName(fileName=name, parameterDict=param_ranges, generateNameString=True)
+        #         # shortName=name.split("_")[0]
+        #         domain.add_validator(ansysValidator(file_path=file_path, ansysVarNames=ansysVarNames, modulusVarNames=modulusVarNames, nodes=nodes, scales=scales, skiprows=1, param=validatorParameterRange, additionalVariables=additionalVariables), shortName)
        
         # file_path=to_absolute_path("./ansys/validators/DP154_482,49999999999994-0,38-0,11000000000000001.csv")
         # name="DP154"
@@ -554,9 +633,13 @@ def ffs(designs=[], reynoldsNr=500):
         # make solver
         slv = Solver(cfg, domain)
 
-        # start solver
-        slv.solve()
+        if cfg.run_mode=="train":
+            # start solver
+            slv.solve()
 
+        if cfg.run_mode=="eval":
+            # start solver
+            slv.eval()
 
     run()
 

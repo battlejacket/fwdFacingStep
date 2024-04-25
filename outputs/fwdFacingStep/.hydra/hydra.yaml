@@ -114,8 +114,8 @@ hydra:
     - path: hydra.conf
       schema: pkg
       provider: hydra
-    - path: /dLight/fwdFacingStepSuddenContr/conf
-      schema: file
+    - path: outputs.fwdFacingStep.physicsOnlyLowerLr@100k.conf
+      schema: pkg
       provider: main
     - path: ''
       schema: structured
