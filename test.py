@@ -3,17 +3,34 @@ from multiprocessing import Process
 from fwdFacingStep import ffs
 import shutil
 
+# {"useData": False, "usePhysics": True, "batchPerEpoch": 4000, "network_dir": "physicsOnlyBatches4000", "max_steps": 100000},
+# {"useData": False, "usePhysics": True, "batchPerEpoch": 4000, "network_dir": "physicsOnlyBatches4000", "max_steps": 300000},
+# {"useData": False, "usePhysics": True, "batchPerEpoch": 4000, "network_dir": "physicsOnlyBatches4000", "max_steps": 500000},
+# {"useData": False, "usePhysics": True, "batchPerEpoch": 4000, "decay_steps": 6000, "network_dir": "physicsOnlyBatches4000LowerDecay", "max_steps": 100000},
+# {"useData": False, "usePhysics": True, "batchPerEpoch": 4000, "decay_steps": 6000, "network_dir": "physicsOnlyBatches4000LowerDecay", "max_steps": 300000},
+# {"useData": False, "usePhysics": True, "batchPerEpoch": 4000, "decay_steps": 6000, "network_dir": "physicsOnlyBatches4000LowerDecay", "max_steps": 500000},
+# {"useData": False, "usePhysics": True, "batchPerEpoch": 1000, "lr": "3e-4", "decay_steps": 6000, "network_dir": "physicsOnlyLowerLr", "max_steps": 100000},
+# {"useData": False, "usePhysics": True, "batchPerEpoch": 1000, "lr": "3e-4", "decay_steps": 6000, "network_dir": "physicsOnlyLowerLr", "max_steps": 300000},
+
+    # {"useData": True, "usePhysics": True, "pressureDataOnly": True, "network_dir": "pressureDataPlusPhysics", "max_steps": 100000},
+
+# pressure only data
+# batches data
+# lr data
+# lambda data LP
+
+
+# increased batch size 700k 
+
+# rerun missing 100k atart with only 100k
 
 valueList = [
-    # {"useData": False, "usePhysics": True, "batchPerEpoch": 4000, "network_dir": "physicsOnlyBatches4000", "max_steps": 100000},
-    # {"useData": False, "usePhysics": True, "batchPerEpoch": 4000, "network_dir": "physicsOnlyBatches4000", "max_steps": 300000},
-    # {"useData": False, "usePhysics": True, "batchPerEpoch": 4000, "network_dir": "physicsOnlyBatches4000", "max_steps": 500000},
-    # {"useData": False, "usePhysics": True, "batchPerEpoch": 4000, "decay_steps": 6000, "network_dir": "physicsOnlyBatches4000LowerDecay", "max_steps": 100000},
-    # {"useData": False, "usePhysics": True, "batchPerEpoch": 4000, "decay_steps": 6000, "network_dir": "physicsOnlyBatches4000LowerDecay", "max_steps": 300000},
-    # {"useData": False, "usePhysics": True, "batchPerEpoch": 4000, "decay_steps": 6000, "network_dir": "physicsOnlyBatches4000LowerDecay", "max_steps": 500000},
-    {"useData": False, "usePhysics": True, "batchPerEpoch": 1000, "lr": "3e-4", "decay_steps": 6000, "network_dir": "physicsOnlyLowerLr", "max_steps": 100000},
-    {"useData": False, "usePhysics": True, "batchPerEpoch": 1000, "lr": "3e-4", "decay_steps": 6000, "network_dir": "physicsOnlyLowerLr", "max_steps": 300000},
-    {"useData": False, "usePhysics": True, "batchPerEpoch": 1000, "lr": "3e-4", "decay_steps": 6000, "network_dir": "physicsOnlyLowerLr", "max_steps": 500000},
+    {"useData": False, "usePhysics": True, "decay_steps": 6000, "network_dir": "physicsOnlyLowerDecay", "max_steps": 100000},
+    {"useData": False, "usePhysics": True, "decay_steps": 6000, "network_dir": "physicsOnlyLowerDecay", "max_steps": 300000},
+    {"useData": False, "usePhysics": True, "decay_steps": 6000, "network_dir": "physicsOnlyLowerDecay", "max_steps": 500000},
+    {"useData": True, "usePhysics": True, "decay_steps": 6000, "network_dir": "dataPlusPhysicsLowerDecay", "max_steps": 100000},
+    {"useData": True, "usePhysics": True, "decay_steps": 6000, "network_dir": "dataPlusPhysicsLowerDecay", "max_steps": 300000},
+    {"useData": True, "usePhysics": True, "decay_steps": 6000, "network_dir": "dataPlusPhysicsLowerDecay", "max_steps": 500000},
             ]
 baseConfigDir = "./conf/"
 baseConfigFilePath = baseConfigDir + "config.yaml"

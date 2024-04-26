@@ -100,7 +100,6 @@ param_ranges = {
 
 
 def ffs(designs=[], reynoldsNr=500, config_path="conf", config_name="config"):
-    print(config_path)
     @modulus.sym.main(config_path=config_path, config_name=config_name)
     def run(cfg: ModulusConfig) -> None:
 
@@ -297,21 +296,22 @@ def ffs(designs=[], reynoldsNr=500, config_path="conf", config_name="config"):
             )
             domain.add_constraint(interiorHR, "interiorHR")
             
-            # interiorUHR = PointwiseInteriorConstraint(
-            #     nodes=nodes,
-            #     geometry=pipe,
-            #     outvar={"continuity": 0, "momentum_x": 0, "momentum_y": 0},
-            #     batch_size=cfg.batch_size.InteriorUHR,
-            #     lambda_weighting={
-            #         "continuity": lambdafunc,
-            #         "momentum_x": lambdafunc,
-            #         "momentum_y": lambdafunc,
-            #     },
-            #     criteria=interiorUHRCriteria,
-            #     batch_per_epoch=cfg.batch_size.batchPerEpoch,
-            #     parameterization=pr,
-            # )
-            # domain.add_constraint(interiorUHR, "interiorUHR")
+            if cfg.custom.interiorUHR:
+                interiorUHR = PointwiseInteriorConstraint(
+                    nodes=nodes,
+                    geometry=pipe,
+                    outvar={"continuity": 0, "momentum_x": 0, "momentum_y": 0},
+                    batch_size=cfg.batch_size.InteriorUHR,
+                    lambda_weighting={
+                        "continuity": lambdafunc,
+                        "momentum_x": lambdafunc,
+                        "momentum_y": lambdafunc,
+                    },
+                    criteria=interiorUHRCriteria,
+                    batch_per_epoch=cfg.batch_size.batchPerEpoch,
+                    parameterization=pr,
+                )
+                domain.add_constraint(interiorUHR, "interiorUHR")
 
             # integral continuity
             
@@ -332,18 +332,18 @@ def ffs(designs=[], reynoldsNr=500, config_path="conf", config_name="config"):
 
         # -----------------------------------------------Data Constraints------------------------------------------------
         if cfg.run_mode=="train" and cfg.custom.useData:
-            ansysInvarNames = ("Points:0", "Points:1")
-            modulusInvarNames = ("x", "y")
+            ansysInvarNames = ["Points:0", "Points:1"]
+            modulusInvarNames = ["x", "y"]
             if cfg.custom.pressureDataOnly:
-                xLimits = [-4, -2, 0, 3, 6, 9]
-                xOffset = 0.025
-                ansysOutvarNames = ("Pressure")
-                modulusOutvarNames = ("p_d")
+                xLimits = [-4, -2, 0, 3, 5.99, 9]
+                xOffset = 0.015
+                ansysOutvarNames = ["Pressure"]
+                modulusOutvarNames = ["p_d"]
                 scales = {"p_d": (0,1), "x": (0,1), "y": (-0.5,1)}
                 lambdaWeighting = {"p_d": 0.1}
                 additionalConstraints=None #{"continuity": 0, "momentum_x": 0, "momentum_y": 0}
                 criteria=And(
-                    LessThan(y,0.0001),
+                    LessThan(y,-D1/2+0.0001),
                     Or(
                         And(GreaterThan(x, xLimits[0]-xOffset), LessThan(x, xLimits[0]+xOffset)),
                         And(GreaterThan(x, xLimits[1]-xOffset), LessThan(x, xLimits[1]+xOffset)),
@@ -355,8 +355,8 @@ def ffs(designs=[], reynoldsNr=500, config_path="conf", config_name="config"):
                 )
                 batches = 1
             else:
-                ansysOutvarNames = ("Pressure", "Velocity:0", "Velocity:1")
-                modulusOutvarNames = ("p_d", "u_d", "v_d")
+                ansysOutvarNames = ["Pressure", "Velocity:0", "Velocity:1"]
+                modulusOutvarNames = ["p_d", "u_d", "v_d"]
                 scales = {"p_d": (0,1), "u_d": (0,1), "v_d": (0,1), "x": (0,1), "y": (-0.5,1)}
                 lambdaWeighting = {"p_d": 0.1, "u_d": 0.1, "v_d": 0.1}
                 additionalConstraints=None #{"continuity": 0, "momentum_x": 0, "momentum_y": 0}
@@ -364,10 +364,11 @@ def ffs(designs=[], reynoldsNr=500, config_path="conf", config_name="config"):
                 batches = cfg.batch_size.batchesData
                 
             for root, dirs, files in walk(to_absolute_path("./ansys/data100")):
-                for name in files:
+                for i, name in enumerate(files):
                     dataParameterRange, shortName = readParametersFromFileName(fileName=name, parameterDict=param_ranges, generateNameString=True)
-                    # reNr = float(name.split("_")[1].split(".")[0].replace(",", ".").split("-")[0])
-                    # print(reNr)
+                    if cfg.custom.useHalfData:
+                        if i%2 == 0:
+                            continue
                     if dataParameterRange[Re] < 100 or dataParameterRange[Re] > 1000:
                         continue
                     else:

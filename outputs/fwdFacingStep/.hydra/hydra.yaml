@@ -114,7 +114,7 @@ hydra:
     - path: hydra.conf
       schema: pkg
       provider: hydra
-    - path: outputs.fwdFacingStep.physicsOnlyLowerLr@100k.conf
+    - path: outputs.fwdFacingStep.physicsOnlyLowerDecay@300k.conf
       schema: pkg
       provider: main
     - path: ''
