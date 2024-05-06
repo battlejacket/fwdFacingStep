@@ -123,18 +123,10 @@ def ffs(designs=[], reynoldsNr=500, config_path="conf", config_name="config"):
 
         pipe -= obstacle
         
-        sizeUHR= 0.1
-        
-        criteriaGeoUHR_step= Rectangle((-sizeUHR*D1, -sizeUHR*D1),(sizeUHR*D1, sizeUHR*D1),parameterization=pr)
-        criteriaGeoUHR_obstacle= Rectangle((-sizeUHR*D1-Lo+Wo/2, -sizeUHR*D1+(0.5-Ho)),(sizeUHR*D1-Lo+Wo/2, sizeUHR*D1+(0.5-Ho)),parameterization=pr)
-        criteriaGeoUHR = criteriaGeoUHR_step+criteriaGeoUHR_obstacle
+
         
         def interiorCriteria(invar, params):
             sdf = pipe.sdf(invar, params)
-            return np.greater(sdf["sdf"], 0)
-        
-        def interiorUHRCriteria(invar, params):
-            sdf = criteriaGeoUHR.sdf(invar, params)
             return np.greater(sdf["sdf"], 0)
 
         # var_to_polyvtk(obstacle.sample_boundary(
@@ -280,6 +272,35 @@ def ffs(designs=[], reynoldsNr=500, config_path="conf", config_name="config"):
             )
             domain.add_constraint(interior, "interior")
             
+            if cfg.custom.interiorUHR:
+                sizeUHR = [0.1, 0.1]
+                centreObstacleUHR = [-Lo+Wo/2, Ho]
+                centreStepUHR = [Wo/2, 0]
+                
+                criteriaUHR = Or(
+                    And(GreaterThan(x, centreObstacleUHR[0] - sizeUHR[0]), LessThan(x, centreObstacleUHR[0] + sizeUHR[0]), GreaterThan(y, centreObstacleUHR[1] - sizeUHR[1]), LessThan(y, centreObstacleUHR[1] + sizeUHR[1])),
+                    And(GreaterThan(x, centreStepUHR[0] - sizeUHR[0]), LessThan(x, centreStepUHR[0] + sizeUHR[0]), GreaterThan(y, centreStepUHR[1] - sizeUHR[1]), LessThan(y, centreStepUHR[1] + sizeUHR[1]))
+                    )
+                criteriaHR = And(criteriaHR, Not(criteriaUHR))
+                
+                lambdaFactor = 0.1
+                
+                interiorUHR = PointwiseInteriorConstraint(
+                    nodes=nodes,
+                    geometry=pipe,
+                    outvar={"continuity": 0, "momentum_x": 0, "momentum_y": 0},
+                    batch_size=cfg.batch_size.InteriorUHR,
+                    lambda_weighting={
+                        "continuity": lambdaFactor * lambdafunc,
+                        "momentum_x": lambdaFactor * lambdafunc,
+                        "momentum_y": lambdaFactor * lambdafunc,
+                    },
+                    criteria=criteriaUHR,
+                    batch_per_epoch=cfg.batch_size.batchPerEpoch,
+                    parameterization=pr,
+                )
+                domain.add_constraint(interiorUHR, "interiorUHR")
+            
             interiorHR = PointwiseInteriorConstraint(
                 nodes=nodes,
                 geometry=pipe,
@@ -296,22 +317,7 @@ def ffs(designs=[], reynoldsNr=500, config_path="conf", config_name="config"):
             )
             domain.add_constraint(interiorHR, "interiorHR")
             
-            if cfg.custom.interiorUHR:
-                interiorUHR = PointwiseInteriorConstraint(
-                    nodes=nodes,
-                    geometry=pipe,
-                    outvar={"continuity": 0, "momentum_x": 0, "momentum_y": 0},
-                    batch_size=cfg.batch_size.InteriorUHR,
-                    lambda_weighting={
-                        "continuity": lambdafunc,
-                        "momentum_x": lambdafunc,
-                        "momentum_y": lambdafunc,
-                    },
-                    criteria=interiorUHRCriteria,
-                    batch_per_epoch=cfg.batch_size.batchPerEpoch,
-                    parameterization=pr,
-                )
-                domain.add_constraint(interiorUHR, "interiorUHR")
+
 
             # integral continuity
             
@@ -340,7 +346,7 @@ def ffs(designs=[], reynoldsNr=500, config_path="conf", config_name="config"):
                 ansysOutvarNames = ["Pressure"]
                 modulusOutvarNames = ["p_d"]
                 scales = {"p_d": (0,1), "x": (0,1), "y": (-0.5,1)}
-                lambdaWeighting = {"p_d": 0.1}
+                lambdaWeighting = {"p_d": cfg.custom.lambda_p_d}
                 additionalConstraints=None #{"continuity": 0, "momentum_x": 0, "momentum_y": 0}
                 criteria=And(
                     LessThan(y,-D1/2+0.0001),
@@ -358,7 +364,7 @@ def ffs(designs=[], reynoldsNr=500, config_path="conf", config_name="config"):
                 ansysOutvarNames = ["Pressure", "Velocity:0", "Velocity:1"]
                 modulusOutvarNames = ["p_d", "u_d", "v_d"]
                 scales = {"p_d": (0,1), "u_d": (0,1), "v_d": (0,1), "x": (0,1), "y": (-0.5,1)}
-                lambdaWeighting = {"p_d": 0.1, "u_d": 0.1, "v_d": 0.1}
+                lambdaWeighting = {"p_d": cfg.custom.lambda_p_d, "u_d": cfg.custom.lambda_u_d, "v_d": cfg.custom.lambda_v_d}
                 additionalConstraints=None #{"continuity": 0, "momentum_x": 0, "momentum_y": 0}
                 criteria=None
                 batches = cfg.batch_size.batchesData

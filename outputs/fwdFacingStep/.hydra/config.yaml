@@ -30,7 +30,7 @@ profiler:
   start_step: 0
   end_step: 100
   name: nvtx
-network_dir: physicsOnlyLowerDecay@300k
+network_dir: data1800PlusPhysicsLambda01@300k
 initialization_network_dir: ''
 save_filetypes: vtk
 summary_histograms: false
@@ -78,7 +78,7 @@ scheduler:
   _target_: custom
   _name_: tf.ExponentialLR
   decay_rate: 0.95
-  decay_steps: 6000
+  decay_steps: 4000
 batch_size:
   inlet: 64
   outlet: 64
@@ -87,11 +87,14 @@ batch_size:
   Interior: 2048
   InteriorHR: 2048
   integralContinuity: 512
-  batchPerEpoch: 2000
-  batchesData: 3600
+  batchPerEpoch: 1000
+  batchesData: 1800
 custom:
-  useData: false
+  useData: true
+  useHalfData: false
   pressureDataOnly: false
+  lambda_p_d: 0.1
+  lambda_u_d: 0.1
+  lambda_v_d: 0.1
   usePhysics: true
   interiorUHR: false
-  useHalfData: false
