@@ -29,7 +29,7 @@ run_mode: "train"
 
 #./ = outputs/fwdFacingStep
 
-network_dir: "dataPlusPhysics1800@100k"
+network_dir: "data1800PlusPhysicsLambda01@100k"
 
 # initialization_network_dir : "./"
 
@@ -48,9 +48,9 @@ custom:
   useData: True
   useHalfData: False
   pressureDataOnly: False
-  lambda_p_d: 0.1
-  lambda_u_d: 0.1
-  lambda_v_d: 0.1
+  lambda_p_d: 1
+  lambda_u_d: 1
+  lambda_v_d: 1
   usePhysics: True
   interiorUHR: False
 
