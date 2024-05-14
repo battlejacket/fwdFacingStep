@@ -1,25 +1,29 @@
 from tensorboard.backend.event_processing.event_accumulator import EventAccumulator
 from statistics import mean 
 import csv
+from os import listdir
 
 
 resultsFilePath="./resultsL2.csv"
-outputsPath="./outputs/fwdFacingStep"
+outputsPath="./outputs/fwdFacingStep/"
+validatorSkip = ["DP5","DP36","DP79","DP86"]
+
+# models = ["data3600PlusPhysicsLambda05@500k", "data3600PlusPhysicsLambda1@500k", "physicsOnly@500k"]
+models = listdir(outputsPath)
+models.sort()
 
 with open(resultsFilePath, "w") as resultsFile:
     writer = csv.writer(resultsFile, delimiter=",")
-
-    models = ["old_dataPlusPhysics3600@300k", "data3600PlusPhysicsLambda05@300k", "data3600PlusPhysicsLambda1@300k", "old_physicsOnly@500k", "physicsOnly@500k"]
-
-    validatorSkip = ["DP5","DP36","DP79","DP86"]
     
     firstRow = ["model", "u mean", "u min", "u max", "v mean", "v min", "v max", "p mean", "p min", "p max"]
-    
     writer.writerow(firstRow)
     
-
     for model in models:
-        log_dir = "outputs/fwdFacingStep/" + model
+        if model== ".hydra":
+            print("skipping ", model)
+            continue
+        
+        log_dir = outputsPath + model
 
         l2u = []
         l2v = []
@@ -35,7 +39,6 @@ with open(resultsFilePath, "w") as resultsFile:
         for tag in tags['tensors']:
             if 'Validators' in tag and not any(element in tag for element in validatorSkip):
                 value = event_accumulator.Tensors(tag)[-1][-1].float_val[0]
-                # names.append(str(tag).split('/')[1].split('_')[0])
                 if 'error_u' in tag:
                     names.append(str(tag).split('/')[1].split('_')[0])
                     l2u.append(value)
@@ -56,6 +59,6 @@ with open(resultsFilePath, "w") as resultsFile:
         l2vMean = mean(l2v)
         l2pMean = mean(l2p)
 
-        row = [model, l2uMean, l2uMin, l2uMax, l2vMean, l2vMin, l2vMax, l2pMean, l2pMin, l2pMax]
+        row = [model, l2uMean, l2uMin[1], l2uMax[1], l2vMean, l2vMin[1], l2vMax[1], l2pMean, l2pMin[1], l2pMax[1]]
         writer.writerow(row)
         
