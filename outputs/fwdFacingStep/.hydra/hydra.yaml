@@ -114,7 +114,7 @@ hydra:
     - path: hydra.conf
       schema: pkg
       provider: hydra
-    - path: outputs.fwdFacingStep.pressureDataPlusPhysicsLambda01@500k.conf
+    - path: outputs.fwdFacingStep.pressureDataPlusPhysicsLambda05@300k.conf
       schema: pkg
       provider: main
     - path: ''
