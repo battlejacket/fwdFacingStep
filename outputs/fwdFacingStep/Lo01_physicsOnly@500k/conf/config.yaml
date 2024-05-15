@@ -29,7 +29,7 @@ run_mode: "train"
 
 #./ = outputs/fwdFacingStep
 
-network_dir: "physicsOnly@500k"
+network_dir: "Lo01_physicsOnly@500k"
 
 # initialization_network_dir : "./"
 
