@@ -19,8 +19,9 @@ class modulusOptProblem(Problem):
         super().__init__(n_var=n_var, n_obj=n_obj, xl=xl, xu=xu)
         self.gen = 0
         self.reynoldsNr= reNr
-        self.maxDesignsPerEvaluation = 250
-        self.path = "./outputs/fwdFacingStep/physicsOnly"
+        self.maxDesignsPerEvaluation = 100
+        self.path = "./outputs/fwdFacingStep/data1800PlusPhysicsLambda01@500k"
+        self.configFileDir = self.path+"/conf/"
         self.path_monitors = os.path.join(self.path, "monitors")
 
     def readFile(self, fileDir, objective, design):
@@ -47,10 +48,10 @@ class modulusOptProblem(Problem):
         print("Generation " + str(self.gen) + ": Evaluating " + str(allDesigns.shape[0]) + " Designs in " + str(batches) + " Batches")
         for designs in np.array_split(ary=allDesigns, indices_or_sections=batches):
             # run modulus
-            # with contextlib.redirect_stdout(io.StringIO()):
-            p = Process(target=ffs, args=(designs,self.reynoldsNr))
-            p.start()
-            p.join() 
+            with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
+                p = Process(target=ffs, args=(designs,self.reynoldsNr, self.configFileDir[2:], "config"))
+                p.start()
+                p.join() 
             # read result files
             for design in enumerate(designs):
                 # read upstream pressure
@@ -100,7 +101,7 @@ for reNr in range (100, 1100, 100):
 
     problem = modulusOptProblem(n_var=2,n_obj=1, xl=xl, xu=xu, reNr=reNr)
 
-    algorithm = DE(pop_size=100)
+    algorithm = DE(pop_size=1000)
 
     termination = DefaultMultiObjectiveTermination(
         n_max_gen=1000, # default 1000
