@@ -109,18 +109,18 @@ hydra:
   runtime:
     version: 1.3.2
     version_base: '1.1'
-    cwd: /dLight/P2/fwdFacingStepSuddenContr
+    cwd: /dLight/fwdFacingStepSuddenContr
     config_sources:
     - path: hydra.conf
       schema: pkg
       provider: hydra
-    - path: outputs.fwdFacingStep.Lo01_physicsOnly@500k.conf
+    - path: outputs.fwdFacingStep.data1800PlusPhysicsLambda01@100k.conf
       schema: pkg
       provider: main
     - path: ''
       schema: structured
       provider: schema
-    output_dir: /dLight/P2/fwdFacingStepSuddenContr/outputs/fwdFacingStep
+    output_dir: /dLight/fwdFacingStepSuddenContr/outputs/fwdFacingStep
     choices:
       loss: sum
       optimizer: adam
