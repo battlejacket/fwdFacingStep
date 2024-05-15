@@ -53,6 +53,42 @@ import shutil
 
 
 valueList = [
+    # physicsOnly
+    {"useData": False, "usePhysics": True, "network_dir": "physicsOnly", "max_steps": 100000},
+    {"useData": False, "usePhysics": True, "network_dir": "physicsOnly", "max_steps": 300000},
+    {"useData": False, "usePhysics": True, "network_dir": "physicsOnly", "max_steps": 500000},
+    
+    # data1800PlusPhysicsLambda01
+    {"useData": True, "usePhysics": True, "batchesData": 1800, "network_dir": "data1800PlusPhysicsLambda01", "max_steps": 100000},
+    {"useData": True, "usePhysics": True, "batchesData": 1800, "network_dir": "data1800PlusPhysicsLambda01", "max_steps": 300000},
+    {"useData": True, "usePhysics": True, "batchesData": 1800, "network_dir": "data1800PlusPhysicsLambda01", "max_steps": 500000},
+    # data1800PlusPhysicsLambda05
+    # {"useData": True, "usePhysics": True, "batchesData": 1800, "lambda_p_d": 0.5, "lambda_u_d": 0.5, "lambda_v_d": 0.5, "network_dir": "data1800PlusPhysicsLambda05", "max_steps": 100000},
+    # {"useData": True, "usePhysics": True, "batchesData": 1800, "lambda_p_d": 0.5, "lambda_u_d": 0.5, "lambda_v_d": 0.5, "network_dir": "data1800PlusPhysicsLambda05", "max_steps": 300000},
+    # {"useData": True, "usePhysics": True, "batchesData": 1800, "lambda_p_d": 0.5, "lambda_u_d": 0.5, "lambda_v_d": 0.5, "network_dir": "data1800PlusPhysicsLambda05", "max_steps": 500000},
+    # data1800PlusPhysicsLambda1
+    {"useData": True, "usePhysics": True, "batchesData": 1800, "lambda_p_d": 1, "lambda_u_d": 1, "lambda_v_d": 1, "network_dir": "data1800PlusPhysicsLambda1", "max_steps": 100000},
+    {"useData": True, "usePhysics": True, "batchesData": 1800, "lambda_p_d": 1, "lambda_u_d": 1, "lambda_v_d": 1, "network_dir": "data1800PlusPhysicsLambda1", "max_steps": 300000},
+    {"useData": True, "usePhysics": True, "batchesData": 1800, "lambda_p_d": 1, "lambda_u_d": 1, "lambda_v_d": 1, "network_dir": "data1800PlusPhysicsLambda1", "max_steps": 500000},
+    
+    # dataOnly1800
+    {"useData": True, "usePhysics": False, "batchesData": 1800, "network_dir": "dataOnly1800", "max_steps": 100000},
+    {"useData": True, "usePhysics": False, "batchesData": 1800, "network_dir": "dataOnly1800", "max_steps": 300000},
+    {"useData": True, "usePhysics": False, "batchesData": 1800, "network_dir": "dataOnly1800", "max_steps": 500000},
+    
+    # pressureDataPlusPhysicsLambda01
+    {"useData": True, "usePhysics": True, "pressureDataOnly": True, "lambda_p_d": 0.1, "lambda_u_d": 0.1, "lambda_v_d": 0.1, "network_dir": "pressureDataPlusPhysicsLambda01", "max_steps": 100000},
+    {"useData": True, "usePhysics": True, "pressureDataOnly": True, "lambda_p_d": 0.1, "lambda_u_d": 0.1, "lambda_v_d": 0.1, "network_dir": "pressureDataPlusPhysicsLambda01", "max_steps": 300000},
+    {"useData": True, "usePhysics": True, "pressureDataOnly": True, "lambda_p_d": 0.1, "lambda_u_d": 0.1, "lambda_v_d": 0.1, "network_dir": "pressureDataPlusPhysicsLambda01", "max_steps": 500000},
+    # pressureDataPlusPhysicsLambda05
+    # {"useData": True, "usePhysics": True, "pressureDataOnly": True, "lambda_p_d": 0.5, "lambda_u_d": 0.5, "lambda_v_d": 0.5, "network_dir": "pressureDataPlusPhysicsLambda05", "max_steps": 100000},
+    # {"useData": True, "usePhysics": True, "pressureDataOnly": True, "lambda_p_d": 0.5, "lambda_u_d": 0.5, "lambda_v_d": 0.5, "network_dir": "pressureDataPlusPhysicsLambda05", "max_steps": 300000},
+    # {"useData": True, "usePhysics": True, "pressureDataOnly": True, "lambda_p_d": 0.5, "lambda_u_d": 0.5, "lambda_v_d": 0.5, "network_dir": "pressureDataPlusPhysicsLambda05", "max_steps": 500000},
+    # pressureDataPlusPhysicsLambda1
+    {"useData": True, "usePhysics": True, "pressureDataOnly": True, "lambda_p_d": 1, "lambda_u_d": 1, "lambda_v_d": 1, "network_dir": "pressureDataPlusPhysicsLambda1", "max_steps": 100000},
+    {"useData": True, "usePhysics": True, "pressureDataOnly": True, "lambda_p_d": 1, "lambda_u_d": 1, "lambda_v_d": 1, "network_dir": "pressureDataPlusPhysicsLambda1", "max_steps": 300000},
+    {"useData": True, "usePhysics": True, "pressureDataOnly": True, "lambda_p_d": 1, "lambda_u_d": 1, "lambda_v_d": 1, "network_dir": "pressureDataPlusPhysicsLambda1", "max_steps": 500000},
+    
     # data3600PlusPhysicsLambda01
     # {"useData": True, "usePhysics": True, "lambda_p_d": 0.1, "lambda_u_d": 0.1, "lambda_v_d": 0.1, "network_dir": "data3600PlusPhysicsLambda01", "max_steps": 100000},
     # {"useData": True, "usePhysics": True, "lambda_p_d": 0.1, "lambda_u_d": 0.1, "lambda_v_d": 0.1, "network_dir": "data3600PlusPhysicsLambda01", "max_steps": 300000},
@@ -65,38 +101,11 @@ valueList = [
     # {"useData": True, "usePhysics": True, "lambda_p_d": 1,   "lambda_u_d": 1,   "lambda_v_d": 1, "network_dir": "data3600PlusPhysicsLambda1", "max_steps": 100000},
     # {"useData": True, "usePhysics": True, "lambda_p_d": 1,   "lambda_u_d": 1,   "lambda_v_d": 1, "network_dir": "data3600PlusPhysicsLambda1", "max_steps": 300000},
     # {"useData": True, "usePhysics": True, "lambda_p_d": 1,   "lambda_u_d": 1,   "lambda_v_d": 1, "network_dir": "data3600PlusPhysicsLambda1", "max_steps": 500000},
-    # pressureDataPlusPhysicsLambda01
-    # {"useData": True, "usePhysics": True, "pressureDataOnly": True, "lambda_p_d": 0.1, "lambda_u_d": 0.1, "lambda_v_d": 0.1, "network_dir": "pressureDataPlusPhysicsLambda01", "max_steps": 100000},
-    # {"useData": True, "usePhysics": True, "pressureDataOnly": True, "lambda_p_d": 0.1, "lambda_u_d": 0.1, "lambda_v_d": 0.1, "network_dir": "pressureDataPlusPhysicsLambda01", "max_steps": 300000},
-    # {"useData": True, "usePhysics": True, "pressureDataOnly": True, "lambda_p_d": 0.1, "lambda_u_d": 0.1, "lambda_v_d": 0.1, "network_dir": "pressureDataPlusPhysicsLambda01", "max_steps": 500000},
-    # pressureDataPlusPhysicsLambda05
-    # {"useData": True, "usePhysics": True, "pressureDataOnly": True, "lambda_p_d": 0.5, "lambda_u_d": 0.5, "lambda_v_d": 0.5, "network_dir": "pressureDataPlusPhysicsLambda05", "max_steps": 100000},
-    {"useData": True, "usePhysics": True, "pressureDataOnly": True, "lambda_p_d": 0.5, "lambda_u_d": 0.5, "lambda_v_d": 0.5, "network_dir": "pressureDataPlusPhysicsLambda05", "max_steps": 300000},
-    {"useData": True, "usePhysics": True, "pressureDataOnly": True, "lambda_p_d": 0.5, "lambda_u_d": 0.5, "lambda_v_d": 0.5, "network_dir": "pressureDataPlusPhysicsLambda05", "max_steps": 500000},
-    # pressureDataPlusPhysicsLambda1
-    {"useData": True, "usePhysics": True, "pressureDataOnly": True, "lambda_p_d": 1, "lambda_u_d": 1, "lambda_v_d": 1, "network_dir": "pressureDataPlusPhysicsLambda1", "max_steps": 100000},
-    {"useData": True, "usePhysics": True, "pressureDataOnly": True, "lambda_p_d": 1, "lambda_u_d": 1, "lambda_v_d": 1, "network_dir": "pressureDataPlusPhysicsLambda1", "max_steps": 300000},
-    {"useData": True, "usePhysics": True, "pressureDataOnly": True, "lambda_p_d": 1, "lambda_u_d": 1, "lambda_v_d": 1, "network_dir": "pressureDataPlusPhysicsLambda1", "max_steps": 500000},
-    # data1800PlusPhysicsLambda01
-    {"useData": True, "usePhysics": True, "batchesData": 1800, "network_dir": "data1800PlusPhysicsLambda01", "max_steps": 100000},
-    {"useData": True, "usePhysics": True, "batchesData": 1800, "network_dir": "data1800PlusPhysicsLambda01", "max_steps": 300000},
-    {"useData": True, "usePhysics": True, "batchesData": 1800, "network_dir": "data1800PlusPhysicsLambda01", "max_steps": 500000},
-    # data1800PlusPhysicsLambda05
-    {"useData": True, "usePhysics": True, "batchesData": 1800, "lambda_p_d": 0.5, "lambda_u_d": 0.5, "lambda_v_d": 0.5, "network_dir": "data1800PlusPhysicsLambda05", "max_steps": 100000},
-    {"useData": True, "usePhysics": True, "batchesData": 1800, "lambda_p_d": 0.5, "lambda_u_d": 0.5, "lambda_v_d": 0.5, "network_dir": "data1800PlusPhysicsLambda05", "max_steps": 300000},
-    {"useData": True, "usePhysics": True, "batchesData": 1800, "lambda_p_d": 0.5, "lambda_u_d": 0.5, "lambda_v_d": 0.5, "network_dir": "data1800PlusPhysicsLambda05", "max_steps": 500000},
-    # data1800PlusPhysicsLambda1
-    {"useData": True, "usePhysics": True, "batchesData": 1800, "lambda_p_d": 1, "lambda_u_d": 1, "lambda_v_d": 1, "network_dir": "data1800PlusPhysicsLambda1", "max_steps": 100000},
-    {"useData": True, "usePhysics": True, "batchesData": 1800, "lambda_p_d": 1, "lambda_u_d": 1, "lambda_v_d": 1, "network_dir": "data1800PlusPhysicsLambda1", "max_steps": 300000},
-    {"useData": True, "usePhysics": True, "batchesData": 1800, "lambda_p_d": 1, "lambda_u_d": 1, "lambda_v_d": 1, "network_dir": "data1800PlusPhysicsLambda1", "max_steps": 500000},
-    # dataOnly1800
-    {"useData": True, "usePhysics": False, "batchesData": 1800, "network_dir": "dataOnly1800", "max_steps": 100000},
-    {"useData": True, "usePhysics": False, "batchesData": 1800, "network_dir": "dataOnly1800", "max_steps": 300000},
-    {"useData": True, "usePhysics": False, "batchesData": 1800, "network_dir": "dataOnly1800", "max_steps": 500000},
+    
     # dataOnly900
-    {"useData": True, "usePhysics": False, "batchesData": 900, "network_dir": "dataOnly900", "max_steps": 100000},
-    {"useData": True, "usePhysics": False, "batchesData": 900, "network_dir": "dataOnly900", "max_steps": 300000},
-    {"useData": True, "usePhysics": False, "batchesData": 900, "network_dir": "dataOnly900", "max_steps": 500000},
+    # {"useData": True, "usePhysics": False, "batchesData": 900, "network_dir": "dataOnly900", "max_steps": 100000},
+    # {"useData": True, "usePhysics": False, "batchesData": 900, "network_dir": "dataOnly900", "max_steps": 300000},
+    # {"useData": True, "usePhysics": False, "batchesData": 900, "network_dir": "dataOnly900", "max_steps": 500000},
 ]
 
 baseConfigDir = "./conf/"

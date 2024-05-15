@@ -19,7 +19,7 @@ with open(resultsFilePath, "w") as resultsFile:
     writer.writerow(firstRow)
     
     for model in models:
-        if model== ".hydra":
+        if model == ".hydra" or model == "init":
             print("skipping ", model)
             continue
         
