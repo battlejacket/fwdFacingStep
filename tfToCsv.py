@@ -7,6 +7,7 @@ from os import listdir
 resultsFilePath="./resultsL2.csv"
 outputsPath="./outputs/fwdFacingStep/"
 validatorSkip = ["DP5","DP36","DP79","DP86"]
+dirSkip = [".hydra", "init"]
 
 # models = ["data3600PlusPhysicsLambda05@500k", "data3600PlusPhysicsLambda1@500k", "physicsOnly@500k"]
 models = listdir(outputsPath)
@@ -19,7 +20,7 @@ with open(resultsFilePath, "w") as resultsFile:
     writer.writerow(firstRow)
     
     for model in models:
-        if model == ".hydra" or model == "init":
+        if model in dirSkip:
             print("skipping ", model)
             continue
         
