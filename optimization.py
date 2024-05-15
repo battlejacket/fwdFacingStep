@@ -1,6 +1,7 @@
 import numpy as np
 import dill
 import os, glob, io, time
+from os import listdir
 import csv
 from fwdFacingStep import ffs, param_ranges, Re, Ho, Lo
 from pymoo.optimize import minimize
@@ -15,12 +16,13 @@ from pymoo.termination.default import DefaultMultiObjectiveTermination
 
 class modulusOptProblem(Problem):
 
-    def __init__(self, n_var, n_obj, xl, xu, reNr):
+    def __init__(self, n_var, n_obj, xl, xu, reNr, path):
         super().__init__(n_var=n_var, n_obj=n_obj, xl=xl, xu=xu)
         self.gen = 0
         self.reynoldsNr= reNr
         self.maxDesignsPerEvaluation = 100
-        self.path = "./outputs/fwdFacingStep/data1800PlusPhysicsLambda01@500k"
+        self.path = path
+        # self.path = "./outputs/fwdFacingStep/data1800PlusPhysicsLambda01@500k"
         self.configFileDir = self.path+"/conf/"
         self.path_monitors = os.path.join(self.path, "monitors")
 
@@ -48,10 +50,10 @@ class modulusOptProblem(Problem):
         print("Generation " + str(self.gen) + ": Evaluating " + str(allDesigns.shape[0]) + " Designs in " + str(batches) + " Batches")
         for designs in np.array_split(ary=allDesigns, indices_or_sections=batches):
             # run modulus
-            with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
-                p = Process(target=ffs, args=(designs,self.reynoldsNr, self.configFileDir[2:], "config"))
-                p.start()
-                p.join() 
+            # with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
+            p = Process(target=ffs, args=(designs,self.reynoldsNr, self.configFileDir[2:], "config", True))
+            p.start()
+            p.join() 
             # read result files
             for design in enumerate(designs):
                 # read upstream pressure
@@ -91,35 +93,53 @@ class modulusOptProblem(Problem):
         elapsed_time = time.time() - strat_time
         print("Evaluation time: ", elapsed_time)
 
-
-
-        
 xl=np.array([float(param_ranges[Lo][0]),float(param_ranges[Ho][0])])
 xu=np.array([float(param_ranges[Lo][1]),float(param_ranges[Ho][1])])
 
-for reNr in range (100, 1100, 100):
+outputsPath="./outputs/fwdFacingStep/"
+dirSkip = [".hydra", "init"]
 
-    problem = modulusOptProblem(n_var=2,n_obj=1, xl=xl, xu=xu, reNr=reNr)
+optResultsPath = "./optimizationResults/"
 
-    algorithm = DE(pop_size=1000)
+# models = ["data3600PlusPhysicsLambda05@500k", "data3600PlusPhysicsLambda1@500k", "physicsOnly@500k"]
+models = listdir(outputsPath)
+models.sort()
 
-    termination = DefaultMultiObjectiveTermination(
-        n_max_gen=1000, # default 1000
-        n_max_evals=100000
-    )
+for model in models:
+    if model in dirSkip:
+        print("skipping ", model)
+        continue
+        
+    path = outputsPath + model
+    optPath = optResultsPath + model
+    print(path)
+    for reNr in range (100, 1100, 100):
 
-    results = minimize(problem=problem, algorithm=algorithm,termination=termination)
+        
+        problem = modulusOptProblem(n_var=2,n_obj=1, xl=xl, xu=xu, reNr=reNr, path=path)
 
-    # with open("checkpoint", "wb") as f:
-    #     dill.dump(algorithm, f)
+        algorithm = DE(pop_size=100)
+
+        termination = DefaultMultiObjectiveTermination(
+            n_max_gen=1000, # default 1000
+            n_max_evals=100000
+        )
+
+        results = minimize(problem=problem, algorithm=algorithm,termination=termination)
+
+        # with open("checkpoint", "wb") as f:
+        #     dill.dump(algorithm, f)
 
 
-    print("Optimization Done!")
-    print("Best Design Objective Value: ", results.F)
-    print("Best Design Parameter Value: ", results.X)
+        print("Optimization Done!")
+        print("Best Design Objective Value: ", results.F)
+        print("Best Design Parameter Value: ", results.X)
 
-    np.save(file="popX" + str(problem.reynoldsNr), arr=results.pop.get("X"))
-    np.save(file="popF" + str(problem.reynoldsNr), arr=results.pop.get("F"))
+        if not os.path.exists(optPath):
+            os.mkdir(optPath)
+            
+        np.save(file=optPath + "/popX" + str(problem.reynoldsNr), arr=results.pop.get("X"))
+        np.save(file=optPath + "/popF" + str(problem.reynoldsNr), arr=results.pop.get("F"))
 
-    np.save(file="optResultsF" + str(problem.reynoldsNr), arr=results.F)
-    np.save(file="optResultsX" + str(problem.reynoldsNr), arr=results.X)
+        np.save(file=optPath + "/optResultsF" + str(problem.reynoldsNr), arr=results.F)
+        np.save(file=optPath + "/optResultsX" + str(problem.reynoldsNr), arr=results.X)
