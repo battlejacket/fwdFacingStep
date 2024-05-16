@@ -50,10 +50,10 @@ class modulusOptProblem(Problem):
         print("Generation " + str(self.gen) + ": Evaluating " + str(allDesigns.shape[0]) + " Designs in " + str(batches) + " Batches")
         for designs in np.array_split(ary=allDesigns, indices_or_sections=batches):
             # run modulus
-            # with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
-            p = Process(target=ffs, args=(designs,self.reynoldsNr, self.configFileDir[2:], "config", True))
-            p.start()
-            p.join() 
+            with contextlib.redirect_stdout(io.StringIO()):
+                p = Process(target=ffs, args=(designs,self.reynoldsNr, self.configFileDir[2:], "config", True))
+                p.start()
+                p.join() 
             # read result files
             for design in enumerate(designs):
                 # read upstream pressure
