@@ -101,8 +101,8 @@ dirSkip = [".hydra", "init"]
 
 optResultsPath = "./optimizationResults/"
 
-# models = ["data3600PlusPhysicsLambda05@500k", "data3600PlusPhysicsLambda1@500k", "physicsOnly@500k"]
-models = listdir(outputsPath)
+models = ["physicsOnly@500k"]
+# models = listdir(outputsPath)
 models.sort()
 
 for model in models:
@@ -118,7 +118,7 @@ for model in models:
         
         problem = modulusOptProblem(n_var=2,n_obj=1, xl=xl, xu=xu, reNr=reNr, path=path)
 
-        algorithm = DE(pop_size=100)
+        algorithm = DE(pop_size=1000)
 
         termination = DefaultMultiObjectiveTermination(
             n_max_gen=1000, # default 1000
