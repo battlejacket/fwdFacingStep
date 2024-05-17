@@ -99,17 +99,17 @@ param_ranges = {
 
 
 
-def ffs(designs=[], reynoldsNr=500, config_path="conf", config_name="config"):
+def ffs(designs=[], reynoldsNr=500, config_path="conf", config_name="config", optOverride=False):
     @modulus.sym.main(config_path=config_path, config_name=config_name)
     def run(cfg: ModulusConfig) -> None:
-
+        print(config_path)
         pr = Parameterization(param_ranges)
 
         # make geometry
-        pipe1 = Rectangle((-L1, -D1/2), (0, D1/2), parameterization=pr)
-        pipe2 = Rectangle((-L1/2, -D1/2), (L2, -D1/2+D2), parameterization=pr)
+        upstreamChannel = Rectangle((-L1, -D1/2), (0, D1/2), parameterization=pr)
+        downstreamChannel = Rectangle((-L1/2, -D1/2), (L2, -D1/2+D2), parameterization=pr)
         
-        pipe = pipe1+pipe2
+        channel = upstreamChannel+downstreamChannel
 
         # inlet = Line((-L1, -D1/2),(-L1, D1/2), parameterization=pr)
         # outlet = Line((L2, D1/2-D2),(L2, D1/2), parameterization=pr)
@@ -121,22 +121,16 @@ def ffs(designs=[], reynoldsNr=500, config_path="conf", config_name="config"):
         # obstacle = Rectangle((-Lo, -D1/2),(-Lo+Wo, (-D1/2)+Ho), parameterization=pr)
         obstacle = Rectangle((-Lo, D1/2-Ho),(-Lo+Wo, D1/2), parameterization=pr)
 
-        pipe -= obstacle
+        channel -= obstacle
         
-
-        
-        def interiorCriteria(invar, params):
-            sdf = pipe.sdf(invar, params)
-            return np.greater(sdf["sdf"], 0)
-
-        # var_to_polyvtk(obstacle.sample_boundary(
-        # nr_points=1000, parameterization={Re: (800,800), Lo: (0.3, 0.3), Ho: (0.2, 0.2)}), './vtp/obstacle')
-        # var_to_polyvtk(pipe2.sample_boundary(
-        # nr_points=1000, parameterization={Re: (800,800), Lo: (0.3, 0.3), Ho: (0.1, 0.1)}), './vtp/pipe2')
-        # var_to_polyvtk(pipe.sample_boundary(
-        # nr_points=1000, parameterization={Re: (800,800), Lo: (0.3, 0.3), Ho: (0.1, 0.1)}), './vtp/pipe')
+        # var_to_polyvtk(channel.sample_boundary(
+        # nr_points=1000, parameterization={Re: (800,800), Lo: (0.3, 0.3), Ho: (0.1, 0.1)}), './vtp/channel')
 
         # print("geo done")
+        
+        def interiorCriteria(invar, params):
+            sdf = channel.sdf(invar, params)
+            return np.greater(sdf["sdf"], 0)
 
 
         # make annular ring domain
@@ -192,7 +186,7 @@ def ffs(designs=[], reynoldsNr=500, config_path="conf", config_name="config"):
         )
         
 
-        if cfg.run_mode=="train" and cfg.custom.usePhysics:
+        if not optOverride and cfg.run_mode=="train" and cfg.custom.usePhysics:
             # inlet
             inletConstraint = PointwiseBoundaryConstraint(
                 nodes=nodes,
@@ -218,11 +212,11 @@ def ffs(designs=[], reynoldsNr=500, config_path="conf", config_name="config"):
             domain.add_constraint(outletConstraint, "outlet")
 
             # no slip
-            noSlipCriteria=And(StrictGreaterThan(x, -L1), StrictLessThan(x, L2))
+            noSlipCriteria=And(StrictGreaterThan(x, -L1), StrictLessThan(x, L2)) # ignore inlet/outlet
             noSlipHrCriteria=And(GreaterThan(x,-1.5*D1), LessThan(x,D1/2), GreaterThan(y, 0))
             no_slip = PointwiseBoundaryConstraint(
                 nodes=nodes,
-                geometry=pipe,
+                geometry=channel,
                 outvar={"u": 0, "v": 0},
                 batch_size=cfg.batch_size.NoSlip,
                 batch_per_epoch=cfg.batch_size.batchPerEpoch,
@@ -235,7 +229,7 @@ def ffs(designs=[], reynoldsNr=500, config_path="conf", config_name="config"):
 
             no_slipHR = PointwiseBoundaryConstraint(
                 nodes=nodes,
-                geometry=pipe,
+                geometry=channel,
                 outvar={"u": 0, "v": 0},
                 batch_size=cfg.batch_size.NoSlipHR,
                 batch_per_epoch=cfg.batch_size.batchPerEpoch,
@@ -257,7 +251,7 @@ def ffs(designs=[], reynoldsNr=500, config_path="conf", config_name="config"):
             criteriaHR=And(GreaterThan(x,2*-D1), LessThan(x,2*D1))
             interior = PointwiseInteriorConstraint(
                 nodes=nodes,
-                geometry=pipe,
+                geometry=channel,
                 outvar={"continuity": 0, "momentum_x": 0, "momentum_y": 0},
                 batch_size=cfg.batch_size.Interior,
                 lambda_weighting={
@@ -287,7 +281,7 @@ def ffs(designs=[], reynoldsNr=500, config_path="conf", config_name="config"):
                 
                 interiorUHR = PointwiseInteriorConstraint(
                     nodes=nodes,
-                    geometry=pipe,
+                    geometry=channel,
                     outvar={"continuity": 0, "momentum_x": 0, "momentum_y": 0},
                     batch_size=cfg.batch_size.InteriorUHR,
                     lambda_weighting={
@@ -303,7 +297,7 @@ def ffs(designs=[], reynoldsNr=500, config_path="conf", config_name="config"):
             
             interiorHR = PointwiseInteriorConstraint(
                 nodes=nodes,
-                geometry=pipe,
+                geometry=channel,
                 outvar={"continuity": 0, "momentum_x": 0, "momentum_y": 0},
                 batch_size=cfg.batch_size.InteriorHR,
                 lambda_weighting={
@@ -324,7 +318,7 @@ def ffs(designs=[], reynoldsNr=500, config_path="conf", config_name="config"):
             integral_continuity = IntegralBoundaryConstraint(
                 nodes=nodes,
                 geometry=integralPlane,
-                # geometry=pipe,
+                # geometry=channel,
                 outvar={"normal_dot_vel": Um*2*(1 - (1/3)/(D1**2))},
                 batch_size=10,
                 integral_batch_size=cfg.batch_size.integralContinuity,
@@ -337,7 +331,7 @@ def ffs(designs=[], reynoldsNr=500, config_path="conf", config_name="config"):
             
 
         # -----------------------------------------------Data Constraints------------------------------------------------
-        if cfg.run_mode=="train" and cfg.custom.useData:
+        if not optOverride and cfg.run_mode=="train" and cfg.custom.useData:
             ansysInvarNames = ["Points:0", "Points:1"]
             modulusInvarNames = ["x", "y"]
             if cfg.custom.pressureDataOnly:
@@ -405,12 +399,12 @@ def ffs(designs=[], reynoldsNr=500, config_path="conf", config_name="config"):
 
             # file_path = to_absolute_path("./ansys/data100/DP5_999,9999999999975-0,64727272727272711-0,11636363636363636.csv")
             # dataParameterRange, shortName = readParametersFromFileName(fileName="DP5_999,9999999999975-0,64727272727272711-0,11636363636363636.csv", parameterDict=param_ranges, generateNameString=True)
-            # domain.add_constraint(dataConstraint(file_path, ansysVarNames, modulusVarNames, nodes, scales, batches=10, skiprows=1, param=dataParameterRange, additionalConstraints=additionalConstraints, geo=pipe), "test")
+            # domain.add_constraint(dataConstraint(file_path, ansysVarNames, modulusVarNames, nodes, scales, batches=10, skiprows=1, param=dataParameterRange, additionalConstraints=additionalConstraints, geo=channel), "test")
 
 
         
         # ------------------------------------------------Inferencers------------------------------------------------
-        if cfg.run_mode!="train":
+        if optOverride or cfg.run_mode!="train":
             inletConstraint = PointwiseBoundaryConstraint(
                 nodes=nodes,
                 geometry=inlet,
@@ -422,229 +416,233 @@ def ffs(designs=[], reynoldsNr=500, config_path="conf", config_name="config"):
             )
             domain.add_constraint(inletConstraint, "inlet")
         
-        quasi = False
-        crit = And(GreaterThan(x,-4*D1), LessThan(x,4*D1))
-        nrPoints=30000
-        # output_names=["u", "v", "p", "nu", "Re", "Lo", "Ho"]
-        # output_names=["u", "v", "p", "nu", "Re", "Lo", "Ho", "x_1", "x_2", "x_3", "u_1", "u_2", "u_3", "v_1", "v_2", "v_3", "p_1", "p_2", "p_3", "bf1", "bf2", "bf3"]
-        output_names=["u", "v", "p", "continuity", "momentum_x", "momentum_y", "lambda_interior"]
+        
+        if not optOverride:
+            quasi = False
+            crit = And(GreaterThan(x,-4*D1), LessThan(x,4*D1))
+            nrPoints=30000
+            # output_names=["u", "v", "p", "nu", "Re", "Lo", "Ho"]
+            # output_names=["u", "v", "p", "nu", "Re", "Lo", "Ho", "x_1", "x_2", "x_3", "u_1", "u_2", "u_3", "v_1", "v_2", "v_3", "p_1", "p_2", "p_3", "bf1", "bf2", "bf3"]
+            output_names=["u", "v", "p", "continuity", "momentum_x", "momentum_y", "lambda_interior"]
 
-        para={Re: 200, Lo: 0.4, Ho: 0.4}
-        interiorInferencer = PointwiseInferencer(
-            nodes=nodes,
-            invar=pipe.sample_interior(nr_points=nrPoints, parameterization=para, quasirandom=quasi, criteria=crit),
-            output_names=output_names,
-            requires_grad=True,
-        )
-        domain.add_inferencer(interiorInferencer, "interior_" + str(para[Lo]).replace(".", ",") + "_" + str(para[Ho]).replace(".", ",") + "_" + str(para[Re]).replace(".", ","))
-        
-        
-        para={Re: 900, Lo: 1, Ho: 0.4}
-        interiorInferencer = PointwiseInferencer(
-            nodes=nodes,
-            invar=pipe.sample_interior(nr_points=nrPoints, parameterization=para, quasirandom=quasi, criteria=crit),
-            output_names=output_names,
-            requires_grad=True,
-        )
-        domain.add_inferencer(interiorInferencer, "interior_" + str(para[Lo]).replace(".", ",") + "_" + str(para[Ho]).replace(".", ",") + "_" + str(para[Re]).replace(".", ","))
-        
-        
-        # noSlipInferencer = PointwiseInferencer(
-        #     nodes=nodes,
-        #     invar=obstacle.sample_boundary(nr_points=500, parameterization=para, quasirandom=quasi, criteria=crit),
-        #     output_names=output_names,
-        # )
-        # domain.add_inferencer(noSlipInferencer, "noSlip_" + str(para[Lo]).replace(".", ",") + "_" + str(para[Ho]).replace(".", ",") + "_" + str(para[Re]).replace(".", ","))
-
-        #------------------------------------------Validators---------------------------------------------------------
-        # ansysVarNames = ("Pressure [ Pa ]", "Velocity u [ m s^-1 ]", "Velocity v [ m s^-1 ]", "X [ m ]", "Y [ m ]")
-        ansysInvarNames = ("Points:0", "Points:1")
-        ansysOutvarNames = ("Pressure", "Velocity:0", "Velocity:1")
-        modulusInvarNames = ("x", "y")
-        modulusOutvarNames = ("p", "u", "v")
-        scales = {"p": (0,1), "u": (0,1), "v": (0,1), "x": (0,1), "y": (-0.5,1)}
-
-        for root, dirs, files in walk(to_absolute_path("./ansys/validators")):
-            for name in files:
-                dataParameterRange, shortName = readParametersFromFileName(fileName=name, parameterDict=param_ranges, generateNameString=True)
-                # print(path.join(root, name))
-                filePath = str(path.join(root, name))
-                dataInvar, dataOutvar = datasetFromCsv(
-                    filePath=filePath,
-                    csvInvarNames=ansysInvarNames,
-                    csvOutvarNames=ansysOutvarNames,
-                    modulusInvarNames=modulusInvarNames,
-                    modulusOutvarNames=modulusOutvarNames,
-                    scales=scales,
-                    parameterRanges=dataParameterRange,
-                    criteria=None)
-                dataValidator = PointwiseValidator(
-                    nodes=nodes, 
-                    invar=dataInvar, 
-                    true_outvar=dataOutvar, 
-                    batch_size=dataInvar['x'].size,
-                    )
-                
-                domain.add_validator(dataValidator, shortName)
-        
-        # ansysVarNames = ("Pressure [ Pa ]", "Velocity u [ m s^-1 ]", "Velocity v [ m s^-1 ]", "X [ m ]", "Y [ m ]")
-        # ansysVarNames = ["Pressure", "Velocity:0", "Velocity:1", "Points:0", "Points:1"]
-        # modulusVarNames = ["p", "u", "v", "x", "y"]
-        # scales = ((0,1), (0,1), (0,1), (0,1), (-0.5,1))
-        # additionalVariables = None #{"continuity": 0, "momentum_x": 0, "momentum_y": 0}
-
-        # for root, dirs, files in walk(to_absolute_path("./ansys/validators")):
-        #     for name in files:
-        #         # print(path.join(root, name))
-        #         file_path = str(path.join(root, name))
-        #         validatorParameterRange, shortName = readParametersFromFileName(fileName=name, parameterDict=param_ranges, generateNameString=True)
-        #         # shortName=name.split("_")[0]
-        #         domain.add_validator(ansysValidator(file_path=file_path, ansysVarNames=ansysVarNames, modulusVarNames=modulusVarNames, nodes=nodes, scales=scales, skiprows=1, param=validatorParameterRange, additionalVariables=additionalVariables), shortName)
-       
-        # file_path=to_absolute_path("./ansys/validators/DP154_482,49999999999994-0,38-0,11000000000000001.csv")
-        # name="DP154"
-        # domain.add_validator(ansysValidator(file_path=file_path, ansysVarNames=ansysVarNames, modulusVarNames=modulusVarNames, nodes=nodes, scales=scales, skiprows=1, param=True, additionalVariables=additionalVariables), name)
-
-        
-        # -----------------------------------------------Monitors-----------------------------------------------
-        
-        # Single Case Monitors
-        # upstreamPressurePoints   = integralPlane.sample_boundary(1024, parameterization={**param_ranges, **{xPos:-4*D1}})
-        # downstreamPressurePoints = integralPlane.sample_boundary(1024, criteria=interiorCriteria, parameterization={**param_ranges, **{xPos:4*D1}})
-
-
-        # upstreamPressure = PointwiseMonitor(
-        #     invar=upstreamPressurePoints,
-        #     output_names=["p"],
-        #     metrics={"upstreamPressure": lambda var: torch.mean(var["p"])},
-        #     nodes=nodes,
-        # )
-        # domain.add_monitor(upstreamPressure)
-
-        # downstreamPressure = PointwiseMonitor(
-        #     invar=downstreamPressurePoints,
-        #     output_names=["p"],
-        #     metrics={"downstreamPressure": lambda var: torch.mean(var["p"])},
-        #     nodes=nodes,
-        # )
-        # domain.add_monitor(downstreamPressure)
-        
-        # # stop criteria monitors
-        # upstreamPoints   = integralPlane.sample_boundary(nrPoints, parameterization={**param_ranges, **{xPos:-4*D1}})
-        # stopCriteria = PointwiseMonitor(
-        #     invar=upstreamPoints,
-        #     output_names=["p"],
-        #     metrics={"stopCriteria" + nameString: lambda var: torch.mean(var["p"])},
-        #     nodes=nodes,
-        # )
-        # domain.add_monitor(stopCriteria)
-        
-        # Pressure Comparison Monitors
-        # if cfg.run_mode=="eval":
-        if True:
-            nrPoints=1024
-            ansysFilePath=to_absolute_path("./ansysDPsValidation.csv") #csv exported from ansys DOE/parameters (edited to have column names on first row, including "Name" (dp) in first column)
+            para={Re: 200, Lo: 0.4, Ho: 0.4}
+            interiorInferencer = PointwiseInferencer(
+                nodes=nodes,
+                invar=channel.sample_interior(nr_points=nrPoints, parameterization=para, quasirandom=quasi, criteria=crit),
+                output_names=output_names,
+                requires_grad=True,
+            )
+            domain.add_inferencer(interiorInferencer, "interior_" + str(para[Lo]).replace(".", ",") + "_" + str(para[Ho]).replace(".", ",") + "_" + str(para[Re]).replace(".", ","))
             
-            with open(ansysFilePath, "r") as ansysFile:
-                reader = csv.reader(ansysFile, delimiter=",")
-                for i, row in enumerate(reader):
-                    if i != 0:
-                        
-                        # nameString = "_" + parameters[0].replace(" ", "") + "_" + parameters[1] + "_" + parameters[2] + "_" + parameters[3]
+            
+            para={Re: 900, Lo: 1, Ho: 0.4}
+            interiorInferencer = PointwiseInferencer(
+                nodes=nodes,
+                invar=channel.sample_interior(nr_points=nrPoints, parameterization=para, quasirandom=quasi, criteria=crit),
+                output_names=output_names,
+                requires_grad=True,
+            )
+            domain.add_inferencer(interiorInferencer, "interior_" + str(para[Lo]).replace(".", ",") + "_" + str(para[Ho]).replace(".", ",") + "_" + str(para[Re]).replace(".", ","))
+            
+            
+            # noSlipInferencer = PointwiseInferencer(
+            #     nodes=nodes,
+            #     invar=obstacle.sample_boundary(nr_points=500, parameterization=para, quasirandom=quasi, criteria=crit),
+            #     output_names=output_names,
+            # )
+            # domain.add_inferencer(noSlipInferencer, "noSlip_" + str(para[Lo]).replace(".", ",") + "_" + str(para[Ho]).replace(".", ",") + "_" + str(para[Re]).replace(".", ","))
 
-                        parameterRange, shortName=readParametersFromCSV(row=row, parameterDict=param_ranges, generateNameString=True)
-                        # parameters=row
-                        # shortName = "_" + parameters[0].replace(" ", "") + "_"
-                        # for parameter in parameters[1:]:
-                        #     parameterF = round(float(parameter), 3)
-                        #     shortName += "%.3f" % parameterF + "-"
-                        
-                        # parameterRange={
-                        #     Re: float(parameters[1]),  
-                        #     Lo: float(parameters[2]),
-                        #     Ho: float(parameters[3]),
-                        # }
-                        upstreamPressurePoints   = integralPlane.sample_boundary(nrPoints, criteria=interiorCriteria, parameterization={**parameterRange, **{xPos:-4*D1}})
-                        downstreamPressurePoints = integralPlane.sample_boundary(nrPoints, criteria=interiorCriteria, parameterization={**parameterRange, **{xPos:4*D1}})
+            #------------------------------------------Validators---------------------------------------------------------
+            # ansysVarNames = ("Pressure [ Pa ]", "Velocity u [ m s^-1 ]", "Velocity v [ m s^-1 ]", "X [ m ]", "Y [ m ]")
+            ansysInvarNames = ("Points:0", "Points:1")
+            ansysOutvarNames = ("Pressure", "Velocity:0", "Velocity:1")
+            modulusInvarNames = ("x", "y")
+            modulusOutvarNames = ("p", "u", "v")
+            scales = {"p": (0,1), "u": (0,1), "v": (0,1), "x": (0,1), "y": (-0.5,1)}
 
-                        # var_to_polyvtk(upstreamPressurePoints, './vtp/upstreamPressurePoints')
-                        # var_to_polyvtk(downstreamPressurePoints, './vtp/downstreamPressurePoints')
-                        
-                        # ansysUSP = float(parameters[8])
-                        # ansysDSP = float(parameters[6])
-                        
-                        # print(nameString + " USP ", ansysUSP)
-                        # print(nameString + " DSP ", ansysDSP)
-
-                        upstreamPressure = PointwiseMonitor(
-                            invar=upstreamPressurePoints,
-                            # output_names=["p", "ptot"],
-                            # metrics={"upstreamPressure" + nameString: lambda var: torch.mean(var["p"]), "upstreamPressureTot" + nameString: lambda var: torch.mean(var["ptot"])},
-                            output_names=["p"],
-                            # metrics={"upstreamPressure" + nameString: lambda var: torch.mean(var["p"]), "upstreamPressureDiff" + nameString: lambda var: torch.sub(torch.mean(var["p"]), ansysUSP)},
-                            metrics={"upstreamPressure_" + shortName + "=" + row[6]: lambda var: torch.mean(var["p"])},
-                            nodes=nodes,
+            for root, dirs, files in walk(to_absolute_path("./ansys/validators")):
+                for name in files:
+                    dataParameterRange, shortName = readParametersFromFileName(fileName=name, parameterDict=param_ranges, generateNameString=True)
+                    # print(path.join(root, name))
+                    filePath = str(path.join(root, name))
+                    dataInvar, dataOutvar = datasetFromCsv(
+                        filePath=filePath,
+                        csvInvarNames=ansysInvarNames,
+                        csvOutvarNames=ansysOutvarNames,
+                        modulusInvarNames=modulusInvarNames,
+                        modulusOutvarNames=modulusOutvarNames,
+                        scales=scales,
+                        parameterRanges=dataParameterRange,
+                        criteria=None)
+                    dataValidator = PointwiseValidator(
+                        nodes=nodes, 
+                        invar=dataInvar, 
+                        true_outvar=dataOutvar, 
+                        batch_size=dataInvar['x'].size,
                         )
-                        domain.add_monitor(upstreamPressure)
-
-                        downstreamPressure = PointwiseMonitor(
-                            invar=downstreamPressurePoints,
-                            # output_names=["p", "ptot"],
-                            # metrics={"downstreamPressure" + nameString: lambda var: torch.mean(var["p"]), "downstreamPressureTot" + nameString: lambda var: torch.mean(var["ptot"])},
-                            output_names=["p"],
-                            # metrics={"downstreamPressure" + nameString: lambda var: torch.mean(var["p"]), "downstreamPressureDiff" + nameString: lambda var: torch.mean(var["p"])-ansysDSP},
-                            metrics={"downstreamPressure_" + shortName + "=" + row[5]: lambda var: torch.mean(var["p"])},
-                            nodes=nodes,
-                        )
-                        domain.add_monitor(downstreamPressure)
                     
-        # ---------------------------------------------------Optimization Monitors--------------------------------------------------            
-        # nrPoints=1024
-        # # print(reynoldsNr)
-        # for i, para in enumerate(designs):
-        #     parameters={
-        #         Re: reynoldsNr,  
-        #         Lo: float(para[0]),
-        #         Ho: float(para[1]),
-        #     }
-        #     upstreamPressurePoints   = integralPlane.sample_boundary(nrPoints, parameterization={**parameters, **{xPos:-4*D1}})
-        #     downstreamPressurePoints = integralPlane.sample_boundary(nrPoints, criteria=interiorCriteria, parameterization={**parameters, **{xPos:4*D1}})
-
-        #     upstreamPressure = PointwiseMonitor(
-        #         invar=upstreamPressurePoints,
-        #         # output_names=["p", "ptot"],
-        #         output_names=["p"],
-        #         # metrics={"upstreamPressure_design_" + str(i): lambda var: torch.mean(var["p"]), "upstreamPressureTot_design_" + str(i): lambda var: torch.mean(var["ptot"])},
-        #         metrics={"upstreamPressure_design_" + str(i): lambda var: torch.mean(var["p"])},
-        #         nodes=nodes,
-        #     )
-        #     domain.add_monitor(upstreamPressure)
+                    domain.add_validator(dataValidator, shortName)
             
-        #     # interiorInferencer = PointwiseInferencer(
-        #     #     nodes=nodes,
-        #     #     invar=pipe.sample_interior(nr_points=nrPoints, parameterization=parameters, quasirandom=quasi, criteria=crit),
-        #     #     output_names=["u", "v", "p"],
-        #     # )
-        #     # domain.add_inferencer(interiorInferencer, "interior_" + str(parameters[Re]).replace(".", ",") + "_" + str(parameters[Lo]).replace(".", ",") + "_" + str(parameters[Ho]).replace(".", ","))
+            # ansysVarNames = ("Pressure [ Pa ]", "Velocity u [ m s^-1 ]", "Velocity v [ m s^-1 ]", "X [ m ]", "Y [ m ]")
+            # ansysVarNames = ["Pressure", "Velocity:0", "Velocity:1", "Points:0", "Points:1"]
+            # modulusVarNames = ["p", "u", "v", "x", "y"]
+            # scales = ((0,1), (0,1), (0,1), (0,1), (-0.5,1))
+            # additionalVariables = None #{"continuity": 0, "momentum_x": 0, "momentum_y": 0}
 
-        #     downstreamPressure = PointwiseMonitor(
-        #         invar=downstreamPressurePoints,
-        #         # output_names=["p", "ptot"],
-        #         output_names=["p"],
-        #         # metrics={"downstreamPressure_design_" + str(i): lambda var: torch.mean(var["p"]), "downstreamPressureTot_design_" + str(i): lambda var: torch.mean(var["ptot"])},
-        #         metrics={"downstreamPressure_design_" + str(i): lambda var: torch.mean(var["p"])},
-        #         nodes=nodes,
-        #     )
-        #     domain.add_monitor(downstreamPressure)
+            # for root, dirs, files in walk(to_absolute_path("./ansys/validators")):
+            #     for name in files:
+            #         # print(path.join(root, name))
+            #         file_path = str(path.join(root, name))
+            #         validatorParameterRange, shortName = readParametersFromFileName(fileName=name, parameterDict=param_ranges, generateNameString=True)
+            #         # shortName=name.split("_")[0]
+            #         domain.add_validator(ansysValidator(file_path=file_path, ansysVarNames=ansysVarNames, modulusVarNames=modulusVarNames, nodes=nodes, scales=scales, skiprows=1, param=validatorParameterRange, additionalVariables=additionalVariables), shortName)
+        
+            # file_path=to_absolute_path("./ansys/validators/DP154_482,49999999999994-0,38-0,11000000000000001.csv")
+            # name="DP154"
+            # domain.add_validator(ansysValidator(file_path=file_path, ansysVarNames=ansysVarNames, modulusVarNames=modulusVarNames, nodes=nodes, scales=scales, skiprows=1, param=True, additionalVariables=additionalVariables), name)
+
+            
+            # -----------------------------------------------Monitors-----------------------------------------------
+            
+            # Single Case Monitors
+            # upstreamPressurePoints   = integralPlane.sample_boundary(1024, parameterization={**param_ranges, **{xPos:-4*D1}})
+            # downstreamPressurePoints = integralPlane.sample_boundary(1024, criteria=interiorCriteria, parameterization={**param_ranges, **{xPos:4*D1}})
+
+
+            # upstreamPressure = PointwiseMonitor(
+            #     invar=upstreamPressurePoints,
+            #     output_names=["p"],
+            #     metrics={"upstreamPressure": lambda var: torch.mean(var["p"])},
+            #     nodes=nodes,
+            # )
+            # domain.add_monitor(upstreamPressure)
+
+            # downstreamPressure = PointwiseMonitor(
+            #     invar=downstreamPressurePoints,
+            #     output_names=["p"],
+            #     metrics={"downstreamPressure": lambda var: torch.mean(var["p"])},
+            #     nodes=nodes,
+            # )
+            # domain.add_monitor(downstreamPressure)
+            
+            # # stop criteria monitors
+            # upstreamPoints   = integralPlane.sample_boundary(nrPoints, parameterization={**param_ranges, **{xPos:-4*D1}})
+            # stopCriteria = PointwiseMonitor(
+            #     invar=upstreamPoints,
+            #     output_names=["p"],
+            #     metrics={"stopCriteria" + nameString: lambda var: torch.mean(var["p"])},
+            #     nodes=nodes,
+            # )
+            # domain.add_monitor(stopCriteria)
+            
+            # Pressure Comparison Monitors
+            # if cfg.run_mode=="eval":
+            if True:
+                nrPoints=1024
+                ansysFilePath=to_absolute_path("./ansysDPsValidation.csv") #csv exported from ansys DOE/parameters (edited to have column names on first row, including "Name" (dp) in first column)
+                
+                with open(ansysFilePath, "r") as ansysFile:
+                    reader = csv.reader(ansysFile, delimiter=",")
+                    for i, row in enumerate(reader):
+                        if i != 0:
+                            
+                            # nameString = "_" + parameters[0].replace(" ", "") + "_" + parameters[1] + "_" + parameters[2] + "_" + parameters[3]
+
+                            parameterRange, shortName=readParametersFromCSV(row=row, parameterDict=param_ranges, generateNameString=True)
+                            # parameters=row
+                            # shortName = "_" + parameters[0].replace(" ", "") + "_"
+                            # for parameter in parameters[1:]:
+                            #     parameterF = round(float(parameter), 3)
+                            #     shortName += "%.3f" % parameterF + "-"
+                            
+                            # parameterRange={
+                            #     Re: float(parameters[1]),  
+                            #     Lo: float(parameters[2]),
+                            #     Ho: float(parameters[3]),
+                            # }
+                            upstreamPressurePoints   = integralPlane.sample_boundary(nrPoints, criteria=interiorCriteria, parameterization={**parameterRange, **{xPos:-4*D1}})
+                            downstreamPressurePoints = integralPlane.sample_boundary(nrPoints, criteria=interiorCriteria, parameterization={**parameterRange, **{xPos:4*D1}})
+
+                            # var_to_polyvtk(upstreamPressurePoints, './vtp/upstreamPressurePoints')
+                            # var_to_polyvtk(downstreamPressurePoints, './vtp/downstreamPressurePoints')
+                            
+                            # ansysUSP = float(parameters[8])
+                            # ansysDSP = float(parameters[6])
+                            
+                            # print(nameString + " USP ", ansysUSP)
+                            # print(nameString + " DSP ", ansysDSP)
+
+                            upstreamPressure = PointwiseMonitor(
+                                invar=upstreamPressurePoints,
+                                # output_names=["p", "ptot"],
+                                # metrics={"upstreamPressure" + nameString: lambda var: torch.mean(var["p"]), "upstreamPressureTot" + nameString: lambda var: torch.mean(var["ptot"])},
+                                output_names=["p"],
+                                # metrics={"upstreamPressure" + nameString: lambda var: torch.mean(var["p"]), "upstreamPressureDiff" + nameString: lambda var: torch.sub(torch.mean(var["p"]), ansysUSP)},
+                                metrics={"upstreamPressure_" + shortName + "=" + row[6]: lambda var: torch.mean(var["p"])},
+                                nodes=nodes,
+                            )
+                            domain.add_monitor(upstreamPressure)
+
+                            downstreamPressure = PointwiseMonitor(
+                                invar=downstreamPressurePoints,
+                                # output_names=["p", "ptot"],
+                                # metrics={"downstreamPressure" + nameString: lambda var: torch.mean(var["p"]), "downstreamPressureTot" + nameString: lambda var: torch.mean(var["ptot"])},
+                                output_names=["p"],
+                                # metrics={"downstreamPressure" + nameString: lambda var: torch.mean(var["p"]), "downstreamPressureDiff" + nameString: lambda var: torch.mean(var["p"])-ansysDSP},
+                                metrics={"downstreamPressure_" + shortName + "=" + row[5]: lambda var: torch.mean(var["p"])},
+                                nodes=nodes,
+                            )
+                            domain.add_monitor(downstreamPressure)
+        
+        if optOverride:
+            
+            # ---------------------------------------------------Optimization Monitors--------------------------------------------------            
+            nrPoints=1024
+            # print(reynoldsNr)
+            for i, para in enumerate(designs):
+                parameters={
+                    Re: reynoldsNr,  
+                    Lo: float(para[0]),
+                    Ho: float(para[1]),
+                }
+                upstreamPressurePoints   = integralPlane.sample_boundary(nrPoints, parameterization={**parameters, **{xPos:-4*D1}})
+                downstreamPressurePoints = integralPlane.sample_boundary(nrPoints, criteria=interiorCriteria, parameterization={**parameters, **{xPos:4*D1}})
+
+                upstreamPressure = PointwiseMonitor(
+                    invar=upstreamPressurePoints,
+                    # output_names=["p", "ptot"],
+                    output_names=["p"],
+                    # metrics={"upstreamPressure_design_" + str(i): lambda var: torch.mean(var["p"]), "upstreamPressureTot_design_" + str(i): lambda var: torch.mean(var["ptot"])},
+                    metrics={"upstreamPressure_design_" + str(i): lambda var: torch.mean(var["p"])},
+                    nodes=nodes,
+                )
+                domain.add_monitor(upstreamPressure)
+                
+                # interiorInferencer = PointwiseInferencer(
+                #     nodes=nodes,
+                #     invar=channel.sample_interior(nr_points=nrPoints, parameterization=parameters, quasirandom=quasi, criteria=crit),
+                #     output_names=["u", "v", "p"],
+                # )
+                # domain.add_inferencer(interiorInferencer, "interior_" + str(parameters[Re]).replace(".", ",") + "_" + str(parameters[Lo]).replace(".", ",") + "_" + str(parameters[Ho]).replace(".", ","))
+
+                downstreamPressure = PointwiseMonitor(
+                    invar=downstreamPressurePoints,
+                    # output_names=["p", "ptot"],
+                    output_names=["p"],
+                    # metrics={"downstreamPressure_design_" + str(i): lambda var: torch.mean(var["p"]), "downstreamPressureTot_design_" + str(i): lambda var: torch.mean(var["ptot"])},
+                    metrics={"downstreamPressure_design_" + str(i): lambda var: torch.mean(var["p"])},
+                    nodes=nodes,
+                )
+                domain.add_monitor(downstreamPressure)
         
         # make solver
         slv = Solver(cfg, domain)
 
-        if cfg.run_mode=="train":
+        if not optOverride and cfg.run_mode=="train":
             # start solver
             slv.solve()
 
-        if cfg.run_mode=="eval":
+        if optOverride or cfg.run_mode=="eval":
             # start solver
             slv.eval()
 
