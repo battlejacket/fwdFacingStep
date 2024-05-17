@@ -142,7 +142,7 @@ for values in valueList:
     with open(configFilePath, "w") as configFile:
         configFile.writelines(configFileList)
     
-    p = Process(target=ffs, args=([],500,configFileDir[2:], "config"))
+    p = Process(target=ffs, args=([],500,configFileDir[2:], "config", False))
     p.start()
     p.join() 
 
