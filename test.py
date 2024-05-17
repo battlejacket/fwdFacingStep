@@ -77,9 +77,9 @@ valueList = [
     {"useData": True, "usePhysics": False, "batchesData": 1800, "network_dir": "dataOnly1800", "max_steps": 500000},
     
     # pressureDataPlusPhysicsLambda01 (est 20h)
-    {"useData": True, "usePhysics": True, "pressureDataOnly": True, "lambda_p_d": 0.1, "lambda_u_d": 0.1, "lambda_v_d": 0.1, "network_dir": "pressureDataPlusPhysicsLambda01", "max_steps": 100000},
-    {"useData": True, "usePhysics": True, "pressureDataOnly": True, "lambda_p_d": 0.1, "lambda_u_d": 0.1, "lambda_v_d": 0.1, "network_dir": "pressureDataPlusPhysicsLambda01", "max_steps": 300000},
-    {"useData": True, "usePhysics": True, "pressureDataOnly": True, "lambda_p_d": 0.1, "lambda_u_d": 0.1, "lambda_v_d": 0.1, "network_dir": "pressureDataPlusPhysicsLambda01", "max_steps": 500000},
+    # {"useData": True, "usePhysics": True, "pressureDataOnly": True, "lambda_p_d": 0.1, "lambda_u_d": 0.1, "lambda_v_d": 0.1, "network_dir": "pressureDataPlusPhysicsLambda01", "max_steps": 100000},
+    # {"useData": True, "usePhysics": True, "pressureDataOnly": True, "lambda_p_d": 0.1, "lambda_u_d": 0.1, "lambda_v_d": 0.1, "network_dir": "pressureDataPlusPhysicsLambda01", "max_steps": 300000},
+    # {"useData": True, "usePhysics": True, "pressureDataOnly": True, "lambda_p_d": 0.1, "lambda_u_d": 0.1, "lambda_v_d": 0.1, "network_dir": "pressureDataPlusPhysicsLambda01", "max_steps": 500000},
     # pressureDataPlusPhysicsLambda05 (est 20h)
     # {"useData": True, "usePhysics": True, "pressureDataOnly": True, "lambda_p_d": 0.5, "lambda_u_d": 0.5, "lambda_v_d": 0.5, "network_dir": "pressureDataPlusPhysicsLambda05", "max_steps": 100000},
     # {"useData": True, "usePhysics": True, "pressureDataOnly": True, "lambda_p_d": 0.5, "lambda_u_d": 0.5, "lambda_v_d": 0.5, "network_dir": "pressureDataPlusPhysicsLambda05", "max_steps": 300000},
