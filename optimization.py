@@ -93,6 +93,7 @@ class modulusOptProblem(Problem):
         elapsed_time = time.time() - strat_time
         print("Evaluation time: ", elapsed_time)
 
+# xl=np.array([0.25,float(param_ranges[Ho][0])])
 xl=np.array([float(param_ranges[Lo][0]),float(param_ranges[Ho][0])])
 xu=np.array([float(param_ranges[Lo][1]),float(param_ranges[Ho][1])])
 
@@ -101,7 +102,7 @@ dirSkip = [".hydra", "init"]
 
 optResultsPath = "./optimizationResults/"
 
-models = ["physicsOnly@500k"]
+models = ["data1800PlusPhysicsLambda01@500k"]
 # models = listdir(outputsPath)
 models.sort()
 
@@ -112,7 +113,7 @@ for model in models:
         
     path = outputsPath + model
     optPath = optResultsPath + model
-    print(path)
+    
     for reNr in range (100, 1100, 100):
 
         

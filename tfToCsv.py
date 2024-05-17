@@ -7,7 +7,7 @@ from os import listdir
 resultsFilePath="./resultsL2.csv"
 outputsPath="./outputs/fwdFacingStep/"
 validatorSkip = ["DP5","DP36","DP79","DP86"]
-dirSkip = [".hydra", "init"]
+dirSkip = [".hydra", "init", "vtp"]
 
 # models = ["data3600PlusPhysicsLambda05@500k", "data3600PlusPhysicsLambda1@500k", "physicsOnly@500k"]
 models = listdir(outputsPath)
@@ -21,8 +21,9 @@ with open(resultsFilePath, "w") as resultsFile:
     
     for model in models:
         if model in dirSkip:
-            print("skipping ", model)
+            # print("skipping ", model)
             continue
+        # print("reading ", model)
         
         log_dir = outputsPath + model
 
@@ -63,3 +64,11 @@ with open(resultsFilePath, "w") as resultsFile:
         row = [model, l2uMean, l2uMin[1], l2uMax[1], l2vMean, l2vMin[1], l2vMax[1], l2pMean, l2pMin[1], l2pMax[1]]
         writer.writerow(row)
         
+        latexStr = model
+            
+        for value in row[1:]:
+            # print(value)
+            valueF = round(float(value), 4)
+            latexStr += " & " + "%.4f" % valueF
+        latexStr += " \\\\"
+        print(latexStr)
