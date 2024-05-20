@@ -123,7 +123,7 @@ for model in models:
 
         termination = DefaultMultiObjectiveTermination(
             n_max_gen=1000, # default 1000
-            n_max_evals=100000
+            n_max_evals=10000000
         )
 
         results = minimize(problem=problem, algorithm=algorithm,termination=termination)
