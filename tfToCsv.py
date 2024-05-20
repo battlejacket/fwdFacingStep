@@ -13,6 +13,8 @@ dirSkip = [".hydra", "init", "vtp"]
 models = listdir(outputsPath)
 models.sort()
 
+models = ["physicsOnly@500k", "data1800PlusPhysicsLambda01@500k", "data1800PlusPhysicsLambda1@500k"]
+
 with open(resultsFilePath, "w") as resultsFile:
     writer = csv.writer(resultsFile, delimiter=",")
     
