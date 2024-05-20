@@ -30,7 +30,7 @@ profiler:
   start_step: 0
   end_step: 100
   name: nvtx
-network_dir: data1800PlusPhysicsLambda01@500k
+network_dir: pressureDataPlusPhysicsLambda1@500k
 initialization_network_dir: init
 save_filetypes: vtk
 summary_histograms: false
@@ -88,13 +88,13 @@ batch_size:
   InteriorHR: 2048
   integralContinuity: 512
   batchPerEpoch: 1000
-  batchesData: 1800
+  batchesData: 3600
 custom:
   useData: true
   useHalfData: false
-  pressureDataOnly: false
-  lambda_p_d: 0.1
-  lambda_u_d: 0.1
-  lambda_v_d: 0.1
+  pressureDataOnly: true
+  lambda_p_d: 1
+  lambda_u_d: 1
+  lambda_v_d: 1
   usePhysics: true
   interiorUHR: false
