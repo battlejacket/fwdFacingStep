@@ -98,16 +98,18 @@ xl=np.array([float(param_ranges[Lo][0]),float(param_ranges[Ho][0])])
 xu=np.array([float(param_ranges[Lo][1]),float(param_ranges[Ho][1])])
 
 outputsPath="./outputs/fwdFacingStep/"
-dirSkip = [".hydra", "init"]
+dirSkip = [".hydra", "init", "data1800PlusPhysicsLambda1@100k2pO@300k", "data1800PlusPhysicsLambda1@300k2pO@500k"]
 
 optResultsPath = "./optimizationResults/"
 
-models = ["data1800PlusPhysicsLambda01@500k"]
-# models = listdir(outputsPath)
+# models = ["data1800PlusPhysicsLambda01@500k"]
+models = listdir(outputsPath)
 models.sort()
 
+print(models)
+
 for model in models:
-    if model in dirSkip:
+    if model in dirSkip or "@100k" in model or "@300k" in model:
         print("skipping ", model)
         continue
         
@@ -123,7 +125,7 @@ for model in models:
 
         termination = DefaultMultiObjectiveTermination(
             n_max_gen=1000, # default 1000
-            n_max_evals=100000
+            n_max_evals=10000000
         )
 
         results = minimize(problem=problem, algorithm=algorithm,termination=termination)
