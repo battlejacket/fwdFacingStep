@@ -108,11 +108,18 @@ valueList = [
     # {"useData": True, "usePhysics": False, "batchesData": 900, "network_dir": "dataOnly900", "max_steps": 500000},
     
     # data1800PlusPhysicsLambda1@300k2pO
-    {"useData": False, "usePhysics": True, "network_dir": "data1800PlusPhysicsLambda1@300k2pO", "max_steps": 500000},
+    # {"useData": False, "usePhysics": True, "network_dir": "data1800PlusPhysicsLambda1@300k2pO", "max_steps": 500000},
     
     # data1800PlusPhysicsLambda1@100k2pO
-    {"useData": False, "usePhysics": True, "network_dir": "data1800PlusPhysicsLambda1@100k2pO", "max_steps": 300000},
-    {"useData": False, "usePhysics": True, "network_dir": "data1800PlusPhysicsLambda1@100k2pO", "max_steps": 500000},
+    # {"useData": False, "usePhysics": True, "network_dir": "data1800PlusPhysicsLambda1@100k2pO", "max_steps": 300000},
+    # {"useData": False, "usePhysics": True, "network_dir": "data1800PlusPhysicsLambda1@100k2pO", "max_steps": 500000},
+    
+    # data1800PlusPhysicsLambda01@100k2pO
+    {"useData": False, "usePhysics": True, "network_dir": "data1800PlusPhysicsLambda01@100k2pO", "max_steps": 300000},
+    {"useData": False, "usePhysics": True, "network_dir": "data1800PlusPhysicsLambda01@100k2pO", "max_steps": 500000},
+    
+    # data1800PlusPhysicsLambda01@300k2pO
+    {"useData": False, "usePhysics": True, "network_dir": "data1800PlusPhysicsLambda01@300k2pO", "max_steps": 500000},
 ]
 
 baseConfigDir = "./conf/"
