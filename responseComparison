@@ -1,0 +1,106 @@
+import numpy as np
+import dill
+import os, glob, io, time
+from os import listdir
+import csv
+from fwdFacingStep import ffs #, param_ranges, Re, Ho, Lo
+from pymoo.optimize import minimize
+from pymoo.core.problem import Problem
+from pymoo.algorithms.moo.nsga2 import NSGA2
+from pymoo.algorithms.soo.nonconvex.de import DE
+from pymoo.algorithms.soo.nonconvex.ga import GA
+from pymoo.visualization.scatter import Scatter
+import contextlib
+from multiprocessing import Process
+from pymoo.termination.default import DefaultMultiObjectiveTermination
+
+
+def readFile(fileDir, objective, design):
+    file = objective + "_design_" + str(design[0]) + ".csv"
+    with open(os.path.join(fileDir, file), "r") as datafile:
+        data = []
+        reader = csv.reader(datafile, delimiter=",")
+        for row in reader:
+            columns = [row[1]]
+            data.append(columns)
+        last_row = float(data[-1][0])
+        return np.array(last_row)
+
+def evaluate(designs, path, reynoldsNr) :
+    
+    configFileDir = path+"/conf/"
+    path_monitors = os.path.join(path, "monitors")
+    
+    tfFiles = glob.glob(os.path.join(path, "events.out.tfevents*"))
+
+    returnVal = []
+    # run modulus
+    with contextlib.redirect_stdout(io.StringIO()):
+        p = Process(target=ffs, args=(designs,reynoldsNr, configFileDir[2:], "config", True))
+        p.start()
+        p.join() 
+    # read result files
+    for design in enumerate(designs):
+        # read upstream pressure
+        objective = "upstreamPressure"
+        USP = readFile(fileDir = path_monitors, objective = objective, design = design)
+        # read downstream pressure
+        objective = "downstreamPressure"
+        DSP = readFile(fileDir = path_monitors, objective = objective, design = design)
+        returnVal.append(2*(USP-DSP))
+            
+
+        # remove old files
+        filePattern = "*.csv"
+        filePaths = glob.glob(os.path.join(path_monitors, filePattern))
+        for file_path in filePaths:
+            os.remove(file_path)
+        
+        filePattern = "events.out.tfevents*"
+        filePaths = glob.glob(os.path.join(path, filePattern))
+        for file_path in filePaths:
+            if file_path not in tfFiles:
+                os.remove(file_path)
+
+    return np.array(returnVal)
+    
+    
+outputsPath="./outputs/fwdFacingStep/"
+dirSkip = [".hydra", "init", "data1800PlusPhysicsLambda1@100k2pO@300k", "data1800PlusPhysicsLambda1@300k2pO@500k"]
+
+resultsDir = "./responseResults/"
+
+Lo = np.arange(0.2, 1.05, 0.05)
+Ho = np.full_like(Lo, 0.4)
+
+print("Lo: ", Lo)
+print("Ho: ", Ho)
+
+# models = ["data1800PlusPhysicsLambda01@500k"]
+models = listdir(outputsPath)
+models.sort()
+
+
+for model in models:
+    if model in dirSkip or "@100k" in model or "@300k" in model:
+        print("skipping ", model)
+        continue
+        
+    path = outputsPath + model
+    resultsPath = resultsDir + model
+    
+    for reNr in range (500, 600, 100):
+        
+        designs = np.array([
+            [val[0], val[1]] for val in zip(Lo, Ho)
+            ])
+
+        results = evaluate(designs)
+
+
+        if not os.path.exists(resultsPath):
+            os.mkdir(resultsPath)
+
+        np.save(file=resultsPath + "/designs" + str(reNr), arr=designs)
+        np.save(file=resultsPath + "/results" + str(reNr), arr=results)
+
