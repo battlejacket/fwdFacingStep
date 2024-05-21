@@ -504,36 +504,38 @@ def ffs(designs=[], reynoldsNr=500, config_path="conf", config_name="config", op
             
             # -----------------------------------------------Monitors-----------------------------------------------
             
-            # Single Case Monitors
-            # upstreamPressurePoints   = integralPlane.sample_boundary(1024, parameterization={**param_ranges, **{xPos:-4*D1}})
-            # downstreamPressurePoints = integralPlane.sample_boundary(1024, criteria=interiorCriteria, parameterization={**param_ranges, **{xPos:4*D1}})
+            # Response Comparison
 
-
-            # upstreamPressure = PointwiseMonitor(
-            #     invar=upstreamPressurePoints,
-            #     output_names=["p"],
-            #     metrics={"upstreamPressure": lambda var: torch.mean(var["p"])},
-            #     nodes=nodes,
-            # )
-            # domain.add_monitor(upstreamPressure)
-
-            # downstreamPressure = PointwiseMonitor(
-            #     invar=downstreamPressurePoints,
-            #     output_names=["p"],
-            #     metrics={"downstreamPressure": lambda var: torch.mean(var["p"])},
-            #     nodes=nodes,
-            # )
-            # domain.add_monitor(downstreamPressure)
+            # responseRe = 500
+            # responseHo = 0.4
             
-            # # stop criteria monitors
-            # upstreamPoints   = integralPlane.sample_boundary(nrPoints, parameterization={**param_ranges, **{xPos:-4*D1}})
-            # stopCriteria = PointwiseMonitor(
-            #     invar=upstreamPoints,
-            #     output_names=["p"],
-            #     metrics={"stopCriteria" + nameString: lambda var: torch.mean(var["p"])},
-            #     nodes=nodes,
-            # )
-            # domain.add_monitor(stopCriteria)
+            # for responseLo in range(0.2, 1, 0.05):
+                
+            #     responsePara = {
+            #         Re: responseRe,
+            #         Lo: responseLo,
+            #         Ho: responseHo
+            #     }
+                
+            #     upstreamPressurePoints   = integralPlane.sample_boundary(1024, parameterization={**responsePara, **{xPos:-4*D1}})
+            #     downstreamPressurePoints = integralPlane.sample_boundary(1024, criteria=interiorCriteria, parameterization={**responsePara, **{xPos:4*D1}})
+
+
+            #     upstreamPressure = PointwiseMonitor(
+            #         invar=upstreamPressurePoints,
+            #         output_names=["p"],
+            #         metrics={"upstreamPressure" + str(responseLo): lambda var: torch.mean(var["p"])},
+            #         nodes=nodes,
+            #     )
+            #     domain.add_monitor(upstreamPressure)
+
+            #     downstreamPressure = PointwiseMonitor(
+            #         invar=downstreamPressurePoints,
+            #         output_names=["p"],
+            #         metrics={"downstreamPressure"  + str(responseLo): lambda var: torch.mean(var["p"])},
+            #         nodes=nodes,
+            #     )
+            #     domain.add_monitor(downstreamPressure)
             
             # Pressure Comparison Monitors
             # if cfg.run_mode=="eval":
