@@ -15,7 +15,7 @@ from multiprocessing import Process
 from pymoo.termination.default import DefaultMultiObjectiveTermination
 
 
-def readFile(self, fileDir, objective, design):
+def readFile(fileDir, objective, design):
     file = objective + "_design_" + str(design[0]) + ".csv"
     with open(os.path.join(fileDir, file), "r") as datafile:
         data = []
@@ -26,51 +26,49 @@ def readFile(self, fileDir, objective, design):
         last_row = float(data[-1][0])
         return np.array(last_row)
 
-def evaluate(self, designs):
+def evaluate(designs, path, reynoldsNr) :
     
-    tfFiles = glob.glob(os.path.join(self.path, "events.out.tfevents*"))
+    configFileDir = path+"/conf/"
+    path_monitors = os.path.join(path, "monitors")
+    
+    tfFiles = glob.glob(os.path.join(path, "events.out.tfevents*"))
 
-    valuesF = []
+    returnVal = []
     # run modulus
     with contextlib.redirect_stdout(io.StringIO()):
-        p = Process(target=ffs, args=(designs,self.reynoldsNr, self.configFileDir[2:], "config", True))
+        p = Process(target=ffs, args=(designs,reynoldsNr, configFileDir[2:], "config", True))
         p.start()
         p.join() 
     # read result files
     for design in enumerate(designs):
         # read upstream pressure
         objective = "upstreamPressure"
-        USP = self.readFile(fileDir = self.path_monitors, objective = objective, design = design)
+        USP = readFile(fileDir = path_monitors, objective = objective, design = design)
         # read downstream pressure
         objective = "downstreamPressure"
-        DSP = self.readFile(fileDir = self.path_monitors, objective = objective, design = design)
-        valuesF.append(2*(USP-DSP))
+        DSP = readFile(fileDir = path_monitors, objective = objective, design = design)
+        returnVal.append(2*(USP-DSP))
             
 
         # remove old files
         filePattern = "*.csv"
-        filePaths = glob.glob(os.path.join(self.path_monitors, filePattern))
+        filePaths = glob.glob(os.path.join(path_monitors, filePattern))
         for file_path in filePaths:
             os.remove(file_path)
         
         filePattern = "events.out.tfevents*"
-        filePaths = glob.glob(os.path.join(self.path, filePattern))
+        filePaths = glob.glob(os.path.join(path, filePattern))
         for file_path in filePaths:
             if file_path not in tfFiles:
                 os.remove(file_path)
 
-    out["F"] = np.array(valuesF)
-    # out["F"] = out["F"].reshape(out["F"].shape[0], 1)
-    # print(out["F"].shape)
-    # print(out["F"])
-    self.gen += 1
-    elapsed_time = time.time() - strat_time
-    print("Evaluation time: ", elapsed_time)
-
+    return np.array(returnVal)
+    
+    
 outputsPath="./outputs/fwdFacingStep/"
 dirSkip = [".hydra", "init", "data1800PlusPhysicsLambda1@100k2pO@300k", "data1800PlusPhysicsLambda1@300k2pO@500k"]
 
-optResultsPath = "./optimizationResults/"
+resultsDir = "./responseResults/"
 
 Lo = np.arange(0.2, 1.05, 0.05)
 Ho = np.full_like(Lo, 0.4)
@@ -89,23 +87,20 @@ for model in models:
         continue
         
     path = outputsPath + model
-    optPath = optResultsPath + model
+    resultsPath = resultsDir + model
     
     for reNr in range (500, 600, 100):
         
-        designs = [
-            [],
-            [],
-            ]
+        designs = np.array([
+            [val[0], val[1]] for val in zip(Lo, Ho)
+            ])
 
         results = evaluate(designs)
 
 
-        if not os.path.exists(optPath):
-            os.mkdir(optPath)
-            
-        np.save(file=optPath + "/popX" + str(problem.reynoldsNr), arr=results.pop.get("X"))
-        np.save(file=optPath + "/popF" + str(problem.reynoldsNr), arr=results.pop.get("F"))
+        if not os.path.exists(resultsPath):
+            os.mkdir(resultsPath)
 
-        np.save(file=optPath + "/optResultsF" + str(problem.reynoldsNr), arr=results.F)
-        np.save(file=optPath + "/optResultsX" + str(problem.reynoldsNr), arr=results.X)
+        np.save(file=resultsPath + "/designs" + str(reNr), arr=designs)
+        np.save(file=resultsPath + "/results" + str(reNr), arr=results)
+
