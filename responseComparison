@@ -35,10 +35,10 @@ def evaluate(designs, path, reynoldsNr) :
 
     returnVal = []
     # run modulus
-    with contextlib.redirect_stdout(io.StringIO()):
-        p = Process(target=ffs, args=(designs,reynoldsNr, configFileDir[2:], "config", True))
-        p.start()
-        p.join() 
+    # with contextlib.redirect_stdout(io.StringIO()):
+    p = Process(target=ffs, args=(designs,reynoldsNr, configFileDir[2:], "config", True))
+    p.start()
+    p.join() 
     # read result files
     for design in enumerate(designs):
         # read upstream pressure
@@ -50,31 +50,28 @@ def evaluate(designs, path, reynoldsNr) :
         returnVal.append(2*(USP-DSP))
             
 
-        # remove old files
-        filePattern = "*.csv"
-        filePaths = glob.glob(os.path.join(path_monitors, filePattern))
-        for file_path in filePaths:
+    # remove old files
+    filePattern = "*.csv"
+    filePaths = glob.glob(os.path.join(path_monitors, filePattern))
+    for file_path in filePaths:
+        if "_design_" not in file_path:
             os.remove(file_path)
-        
-        filePattern = "events.out.tfevents*"
-        filePaths = glob.glob(os.path.join(path, filePattern))
-        for file_path in filePaths:
-            if file_path not in tfFiles:
-                os.remove(file_path)
+    
+    filePattern = "events.out.tfevents*"
+    filePaths = glob.glob(os.path.join(path, filePattern))
+    for file_path in filePaths:
+        if file_path not in tfFiles:
+            os.remove(file_path)
 
     return np.array(returnVal)
     
     
 outputsPath="./outputs/fwdFacingStep/"
-dirSkip = [".hydra", "init", "data1800PlusPhysicsLambda1@100k2pO@300k", "data1800PlusPhysicsLambda1@300k2pO@500k"]
+dirSkip = [".hydra", "init"]
 
 resultsDir = "./responseResults/"
 
-Lo = np.arange(0.2, 1.05, 0.05)
-Ho = np.full_like(Lo, 0.4)
-
-print("Lo: ", Lo)
-print("Ho: ", Ho)
+Lo = np.arange(0.2, 1.05, 0.0125)
 
 # models = ["data1800PlusPhysicsLambda01@500k"]
 models = listdir(outputsPath)
@@ -82,25 +79,28 @@ models.sort()
 
 
 for model in models:
-    if model in dirSkip or "@100k" in model or "@300k" in model:
+    if model in dirSkip or "100k" in model.split("@")[-1] or "300k" in model.split("@")[-1]:
         print("skipping ", model)
         continue
         
     path = outputsPath + model
     resultsPath = resultsDir + model
     
-    for reNr in range (500, 600, 100):
-        
-        designs = np.array([
-            [val[0], val[1]] for val in zip(Lo, Ho)
-            ])
+    for reNr in [500, 800]:
+        for HoV in [0.35, 0.4, 0.45]:
+            
+            Ho = np.full_like(Lo, HoV)
 
-        results = evaluate(designs)
+            designs = np.array([
+                [val[0], val[1]] for val in zip(Lo, Ho)
+                ])
+
+            results = evaluate(designs, path, reNr)
 
 
-        if not os.path.exists(resultsPath):
-            os.mkdir(resultsPath)
+            if not os.path.exists(resultsPath):
+                os.mkdir(resultsPath)
 
-        np.save(file=resultsPath + "/designs" + str(reNr), arr=designs)
-        np.save(file=resultsPath + "/results" + str(reNr), arr=results)
+            np.save(file=resultsPath + "/designsRe" + str(reNr) + "Ho" + str(HoV), arr=designs)
+            np.save(file=resultsPath + "/resultsRe" + str(reNr) + "Ho" + str(HoV), arr=results)
 
