@@ -98,18 +98,19 @@ xl=np.array([float(param_ranges[Lo][0]),float(param_ranges[Ho][0])])
 xu=np.array([float(param_ranges[Lo][1]),float(param_ranges[Ho][1])])
 
 outputsPath="./outputs/fwdFacingStep/"
-dirSkip = [".hydra", "init", "data1800PlusPhysicsLambda1@100k2pO@300k", "data1800PlusPhysicsLambda1@300k2pO@500k"]
+dirSkip = [".hydra", "init"]
 
 optResultsPath = "./optimizationResults/"
 
 # models = ["data1800PlusPhysicsLambda01@500k"]
 models = listdir(outputsPath)
 models.sort()
+models = ["data1800PlusPhysicsLambda1@100k2pO@300k", "data1800PlusPhysicsLambda1@100k2pO@500k", "data1800PlusPhysicsLambda1@300k2pO@500k"]
 
 print(models)
 
 for model in models:
-    if model in dirSkip or "@100k" in model or "@300k" in model:
+    if model in dirSkip or "100k" in model.split("@")[-1] or "300k" in model.split("@")[-1]:
         print("skipping ", model)
         continue
         
