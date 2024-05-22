@@ -71,7 +71,7 @@ dirSkip = [".hydra", "init"]
 
 resultsDir = "./responseResults/"
 
-Lo = np.arange(0.2, 1.05, 0.025)
+Lo = np.arange(0.2, 1.05, 0.0125)
 
 # models = ["data1800PlusPhysicsLambda01@500k"]
 models = listdir(outputsPath)
@@ -86,7 +86,7 @@ for model in models:
     path = outputsPath + model
     resultsPath = resultsDir + model
     
-    for reNr in range (400, 600, 100):
+    for reNr in [500, 800]:
         for HoV in [0.35, 0.4, 0.45]:
             
             Ho = np.full_like(Lo, HoV)

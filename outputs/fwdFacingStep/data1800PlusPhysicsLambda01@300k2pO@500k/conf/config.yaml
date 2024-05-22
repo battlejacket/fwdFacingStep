@@ -29,7 +29,7 @@ run_mode: "train"
 
 #./ = outputs/fwdFacingStep
 
-network_dir: "data1800PlusPhysicsLambda01@300k"
+network_dir: "data1800PlusPhysicsLambda01@300k2pO@500k"
 
 initialization_network_dir : "init"
 
@@ -41,11 +41,11 @@ training:
   rec_inference_freq:   100000
   rec_monitor_freq:     1000
   rec_constraint_freq:  100000
-  max_steps: 300000
+  max_steps: 500000
 
 
 custom:
-  useData: True
+  useData: False
   useHalfData: False
   pressureDataOnly: False
   lambda_p_d: 0.1
@@ -65,7 +65,7 @@ batch_size:
   # InteriorUHR: 1024
   integralContinuity: 512
   batchPerEpoch: 1000
-  batchesData: 1800
+  batchesData: 3600
 
 graph:
   func_arch: True
