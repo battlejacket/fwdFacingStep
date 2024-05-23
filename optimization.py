@@ -107,7 +107,7 @@ optResultsPath = "./optimizationResultsReducedRange/"
 # models = ["data1800PlusPhysicsLambda01@500k"]
 models = listdir(outputsPath)
 models.sort()
-models = ["data1800PlusPhysicsLambda1@100k2pO@300k", "data1800PlusPhysicsLambda1@100k2pO@500k", "data1800PlusPhysicsLambda1@300k2pO@500k"]
+# models = ["data1800PlusPhysicsLambda1@100k2pO@300k", "data1800PlusPhysicsLambda1@100k2pO@500k", "data1800PlusPhysicsLambda1@300k2pO@500k"]
 
 print(models)
 
