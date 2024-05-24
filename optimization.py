@@ -121,6 +121,11 @@ for model in models:
     
     for reNr in range (100, 1100, 100):
 
+        if os.path.exists(optPath + "/optResultsX" + str(reNr) + ".npy"):
+            print("skipping ", optPath + " " + str(reNr))
+            continue
+        
+        print("Optimizing: ", str(model) + " " + str(reNr))
         
         problem = modulusOptProblem(n_var=2,n_obj=1, xl=xl, xu=xu, reNr=reNr, path=path)
 
