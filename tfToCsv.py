@@ -6,7 +6,7 @@ from os import listdir
 
 resultsFilePath="./resultsL2.csv"
 outputsPath="./outputs/fwdFacingStep/"
-validatorSkip = ["DP5","DP36","DP79","DP86"]
+validatorSkip = ["DP5","DP36","DP79","DP86"] # skip data points
 dirSkip = [".hydra", "init", "vtp"]
 
 # models = ["data3600PlusPhysicsLambda05@500k", "data3600PlusPhysicsLambda1@500k", "physicsOnly@500k"]
