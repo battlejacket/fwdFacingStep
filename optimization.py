@@ -77,7 +77,8 @@ class modulusOptProblem(Problem):
             filePattern = "*.csv"
             filePaths = glob.glob(os.path.join(self.path_monitors, filePattern))
             for file_path in filePaths:
-                os.remove(file_path)
+                if "_design_" in file_path:
+                    os.remove(file_path)
             
             filePattern = "events.out.tfevents*"
             filePaths = glob.glob(os.path.join(self.path, filePattern))
