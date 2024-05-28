@@ -81,14 +81,15 @@ with open(resultsFilePath, "w") as resultsFile:
         elif len(modelStrSplit) == 2:
             label = shortNameDict[modelStrSplit[0]] + "@" + modelStrSplit[-1]
 
-        row = [label, l2uMean, l2uMin[1], l2uMax[1], l2vMean, l2vMin[1], l2vMax[1], l2pMean, l2pMin[1], l2pMax[1]]
+        row = [label, l2uMean, l2uMin[1], str(l2uMax[1]) + " " + l2uMax[0], l2vMean, l2vMin[1], str(l2vMax[1]) + " " +  l2vMax[0], l2pMean, l2pMin[1], str(l2pMax[1]) + " " +  l2pMax[0]]
         writer.writerow(row)
         
         latexStr = label
             
         for value in row[1:]:
             # print(value)
-            valueF = round(float(value), 4)
-            latexStr += " & " + "%.4f" % valueF
+            # valueF = round(float(value), 4)
+            # latexStr += " & " + "%.4f" % valueF
+            latexStr += " & " + str(value)
         latexStr += " \\\\"
         print(latexStr)
