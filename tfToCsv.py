@@ -3,6 +3,17 @@ from statistics import mean
 import csv
 from os import listdir
 
+shortNameDict = {
+    "data1800PlusPhysicsLambda1": "D+P$\_W_d1$",
+    # "data1800PlusPhysicsLambda1": "D+P_L1",
+    "data1800PlusPhysicsLambda01": "D+P$\_W_d0.1$",
+    # "data1800PlusPhysicsLambda01": "D+P_L0.1",
+    "dataOnly1800": "D",
+    "physicsOnly": "P",
+    "pressureDataPlusPhysicsLambda1": "PD+P",
+    "2pO": "ToP"
+}
+
 
 resultsFilePath="./resultsL2.csv"
 outputsPath="./outputs/fwdFacingStep/"
@@ -13,7 +24,7 @@ dirSkip = [".hydra", "init", "vtp"]
 models = listdir(outputsPath)
 models.sort()
 
-models = ["physicsOnly@500k", "data1800PlusPhysicsLambda01@500k", "data1800PlusPhysicsLambda1@500k"]
+# models = ["physicsOnly@500k", "data1800PlusPhysicsLambda01@500k", "data1800PlusPhysicsLambda1@500k"]
 
 with open(resultsFilePath, "w") as resultsFile:
     writer = csv.writer(resultsFile, delimiter=",")
@@ -63,10 +74,17 @@ with open(resultsFilePath, "w") as resultsFile:
         l2vMean = mean(l2v)
         l2pMean = mean(l2p)
 
-        row = [model, l2uMean, l2uMin[1], l2uMax[1], l2vMean, l2vMin[1], l2vMax[1], l2pMean, l2pMin[1], l2pMax[1]]
+        modelStrSplit = model.split("@")
+                
+        if len(modelStrSplit) == 3:
+            label = shortNameDict[modelStrSplit[0]] + "@" + modelStrSplit[1].split("k")[0] + "k" + shortNameDict[modelStrSplit[1].split("k")[-1]] + "@" + modelStrSplit[-1]
+        elif len(modelStrSplit) == 2:
+            label = shortNameDict[modelStrSplit[0]] + "@" + modelStrSplit[-1]
+
+        row = [label, l2uMean, l2uMin[1], l2uMax[1], l2vMean, l2vMin[1], l2vMax[1], l2pMean, l2pMin[1], l2pMax[1]]
         writer.writerow(row)
         
-        latexStr = model
+        latexStr = label
             
         for value in row[1:]:
             # print(value)
