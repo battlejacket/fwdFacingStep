@@ -31,7 +31,8 @@ run_mode: "train"
 
 network_dir: "pressureDataPlusPhysics"
 
-initialization_network_dir : "init"
+initialization_network_dir : "initFC"
+# initialization_network_dir : "init"
 
 optimizer: 
   lr: 5e-4                   # Change this based on arch chosen

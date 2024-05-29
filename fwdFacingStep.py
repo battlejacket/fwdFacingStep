@@ -42,6 +42,7 @@ from modulus.sym.node import Node
 from modulus.sym.eq.pdes.navier_stokes import NavierStokes
 from modulus.sym.eq.pdes.basic import NormalDotVec
 from modulus.sym.models.fourier_net import FourierNetArch
+from modulus.sym.models.fully_connected import FullyConnectedArch
 from modulus.sym.utils.io.vtk import var_to_polyvtk
 from ansysValidator import ansysValidator
 from dataConstraint import dataConstraint
@@ -145,24 +146,28 @@ def ffs(designs=[], reynoldsNr=500, config_path="conf", config_name="config", op
         # ns_t = NavierStokes_t(nu=nu, rho=rho, dim=2, time=False)
         normal_dot_vel = NormalDotVec(["u", "v"])
         
-        # flow_net = FullyConnectedArch(
-        #     input_keys=input_keys,
-        #     output_keys=output_keys,
-        # )
-        flow_net = FourierNetArch(
+        flow_net = FullyConnectedArch(
             input_keys=input_keys,
             output_keys=output_keys,
-            frequencies=("axis", [i/2 for i in range(32)]),
-            frequencies_params=("axis", [i/2 for i in range(32)]),
-            # frequencies=("axis", [i/2 for i in range(16)]),
-            # frequencies_params=("axis", [i/2 for i in range(16)]),
-            # frequencies=("gaussian", 0.5, 128),
-            # frequencies_params=("gaussian", 0.5, 128),
-            # layer_size=256,
             layer_size=512,
             nr_layers=6,
             adaptive_activations=True,
             )
+        
+        # flow_net = FourierNetArch(
+        #     input_keys=input_keys,
+        #     output_keys=output_keys,
+        #     frequencies=("axis", [i/2 for i in range(32)]),
+        #     frequencies_params=("axis", [i/2 for i in range(32)]),
+        #     # frequencies=("axis", [i/2 for i in range(16)]),
+        #     # frequencies_params=("axis", [i/2 for i in range(16)]),
+        #     # frequencies=("gaussian", 0.5, 128),
+        #     # frequencies_params=("gaussian", 0.5, 128),
+        #     # layer_size=256,
+        #     layer_size=512,
+        #     nr_layers=6,
+        #     adaptive_activations=True,
+        #     )
 
 
         nodes = (
