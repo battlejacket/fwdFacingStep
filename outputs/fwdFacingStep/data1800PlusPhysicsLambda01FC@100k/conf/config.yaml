@@ -31,8 +31,7 @@ run_mode: "train"
 
 network_dir: "data1800PlusPhysicsLambda01FC@100k"
 
-initialization_network_dir : "initFC"
-# initialization_network_dir : "init"
+initialization_network_dir : initFC
 
 optimizer: 
   lr: 5e-4                   # Change this based on arch chosen
@@ -54,6 +53,8 @@ custom:
   lambda_v_d: 0.1
   usePhysics: True
   interiorUHR: False
+  netArch: FC
+
 
 
 batch_size:

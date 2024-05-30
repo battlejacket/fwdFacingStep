@@ -71,8 +71,8 @@ dirSkip = [".hydra", "init"]
 
 resultsDir = "./responseResults/"
 
-# Lo = np.arange(0.2, 1.05, 0.0125)
-Lo = np.arange(0.1, 0.5, 0.0125)
+Lo = np.arange(0.2, 1.05, 0.0125)
+# Lo = np.arange(0.1, 0.5, 0.0125)
 
 # models = ["data1800PlusPhysicsLambda01@500k"]
 models = listdir(outputsPath)
@@ -91,14 +91,14 @@ for model in models:
     resultsPath = resultsDir + model
     
     for reNr in [500, 800]:
-        # for HoV in [0.35, 0.4, 0.45]:
-        for HoV in [0.2, 0.3, 0.4]:
+        for HoV in [0.35, 0.4, 0.45]:
+        # for HoV in [0.2, 0.3, 0.4]:
             
             Ho = np.full_like(Lo, HoV)
 
             designs = np.array([
-                # [val[0], val[1]] for val in zip(Lo, Ho)
-                [val[0], val[1]] for val in zip(Ho, Lo)
+                [val[0], val[1]] for val in zip(Lo, Ho)
+                # [val[0], val[1]] for val in zip(Ho, Lo)
                 ])
 
             results = evaluate(designs, path, reNr)
@@ -107,9 +107,9 @@ for model in models:
             if not os.path.exists(resultsPath):
                 os.mkdir(resultsPath)
 
-            # np.save(file=resultsPath + "/designsRe" + str(reNr) + "Ho" + str(HoV), arr=designs)
-            # np.save(file=resultsPath + "/resultsRe" + str(reNr) + "Ho" + str(HoV), arr=results)
+            np.save(file=resultsPath + "/designsRe" + str(reNr) + "Ho" + str(HoV), arr=designs)
+            np.save(file=resultsPath + "/resultsRe" + str(reNr) + "Ho" + str(HoV), arr=results)
             
-            np.save(file=resultsPath + "/designsRe" + str(reNr) + "Lo" + str(HoV), arr=designs)
-            np.save(file=resultsPath + "/resultsRe" + str(reNr) + "Lo" + str(HoV), arr=results)
+            # np.save(file=resultsPath + "/designsRe" + str(reNr) + "Lo" + str(HoV), arr=designs)
+            # np.save(file=resultsPath + "/resultsRe" + str(reNr) + "Lo" + str(HoV), arr=results)
 
