@@ -4,7 +4,6 @@ from fwdFacingStep import ffs
 import shutil
 
 valueList = [
-<<<<<<< HEAD
     # physicsOnly (15.5h)
     # {"useData": False, "usePhysics": True, "netArch": "FC", "initialization_network_dir": "initFC", "network_dir": "physicsOnlyFC", "max_steps": 100000},
     # {"useData": False, "usePhysics": True, "netArch": "FC", "initialization_network_dir": "initFC", "network_dir": "physicsOnlyFC", "max_steps": 300000},

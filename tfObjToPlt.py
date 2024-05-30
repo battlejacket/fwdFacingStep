@@ -5,29 +5,19 @@ import csv
 from os import listdir
 import numpy as np
 import matplotlib.pyplot as plt
+from shortNames import shortNameDict
 
-shortNameDict = {
-    "data1800PlusPhysicsLambda1": "D+P$\_W_d1$",
-    # "data1800PlusPhysicsLambda1": "D+P_L1",
-    "data1800PlusPhysicsLambda01": "D+P$\_W_d0.1$",
-    # "data1800PlusPhysicsLambda01": "D+P_L0.1",
-    "dataOnly1800": "D",
-    "physicsOnly": "P",
-    "pressureDataPlusPhysicsLambda1": "PD+P",
-    "2pO": "ToP"
-}
 
 resultsFilePath="./resultsL2.csv"
 outputsPath="./outputs/fwdFacingStep/"
 validatorSkip = ["DP5","DP36","DP79","DP86"] # skip data points
 # validatorSkip = [] # skip data points
-dirSkip = [".hydra", "init", "vtp"]
+dirSkip = [".hydra", "init", "vtp", "initFC"]
 
-# models = ["data3600PlusPhysicsLambda05@500k", "data3600PlusPhysicsLambda1@500k", "physicsOnly@500k"]
 models = listdir(outputsPath)
 models.sort()
 
-# models = ["physicsOnly@500k", "data1800PlusPhysicsLambda01@500k"]
+# models = ["data1800PlusPhysicsLambda1@500k", "data1800PlusPhysicsLambda1FC@300k"]
 
 with open(resultsFilePath, "w") as resultsFile:
     writer = csv.writer(resultsFile, delimiter=",")
@@ -36,16 +26,17 @@ with open(resultsFilePath, "w") as resultsFile:
     writer.writerow(firstRow)
     
     plt.figure(1)
-    plt.title("Mean L2 u")
+    plt.title("MAE Downstream Pressure")
     
     plt.figure(2)
-    plt.title("Mean L2 v")
+    plt.title("MAE Upstream Pressure")
     
     plt.figure(3)
-    plt.title("Mean L2 p")
+    plt.title("MAE $\Delta C_p$")
     
     for model in models:
-        if model in dirSkip or "100k" in model.split("@")[-1] or "300k" in model.split("@")[-1]:
+        if model in dirSkip or "100k" in model.split("@")[-1] or "500k" in model.split("@")[-1]:
+        # if model in dirSkip or "100k" in model.split("@")[-1] or "300k" in model.split("@")[-1]:
         # if model in dirSkip:
             # print("skipping ", model)
             continue
@@ -53,9 +44,13 @@ with open(resultsFilePath, "w") as resultsFile:
         
         log_dir = outputsPath + model
 
-        meanL2u = np.zeros(501)
-        meanL2v = np.zeros(501)
-        meanL2p = np.zeros(501)
+        DSP = {}
+        trueDSPd = {}
+        USP = {}
+        trueUSPd = {}
+        DCp = {}
+        trueDCp = {}
+
 
         ea = EventAccumulator(log_dir, size_guidance={event_accumulator.TENSORS: 0})
         ea.Reload()
@@ -66,7 +61,7 @@ with open(resultsFilePath, "w") as resultsFile:
         
         
         for tag in tags['tensors']:
-            if 'Validators' in tag and not any(element in tag for element in validatorSkip):
+            if 'Monitors' in tag and not any(element in tag for element in validatorSkip) and not "_design_" in tag:
                 values = []
                 steps = []
                 events = ea.Tensors(tag)
@@ -81,20 +76,59 @@ with open(resultsFilePath, "w") as resultsFile:
                         steps.append(step)
                     pStep = step
 
+                # if n == 0:
+                    # meanDSP = np.zeros(len(values))
+                    # meanUSP = np.zeros(len(values))
+                    # meanDCp = np.zeros(len(values))
                 
-                if 'error_u' in tag:
-                    meanL2u += np.array(values)
+                if 'downstreamPressure' in tag:
+                    DP = tag.split("DP")[1].split("_")[0]
+                    trueDSPd[DP] = tag.split("=")[-1]
+                    DSP[DP] = values
+                    l = len(values)
                     n +=1
+                
+                if 'upstreamPressure' in tag:
+                    DP = tag.split("DP")[1].split("_")[0]
+                    trueUSPd[DP] = tag.split("=")[-1]
+                    USP[DP] = values
                     
-                if 'error_v' in tag:
-                    meanL2v += np.array(values)
-                    
-                if 'error_p' in tag:
-                    meanL2p += np.array(values)
-                    
-        meanL2u /= n
-        meanL2v /= n
-        meanL2p /= n
+        
+        meanUSP = np.zeros(l)
+        meanDSP = np.zeros(l)
+        meanDCp = np.zeros(l)
+        
+        for key in USP.keys():
+            # print(key + ": ",trueUSP[key])
+            npUSP = np.array(USP[key])
+            trueUSP = float(trueUSPd[key])
+            npUSPError = np.abs(npUSP - trueUSP)
+            
+            
+            npDSP = np.array(DSP[key])
+            trueDSP = float(trueDSPd[key])
+            npDSPError = np.abs(npDSP - trueDSP)
+            
+            
+            DCp = 2*(npUSP-npDSP)
+            trueDCp = 2*(trueUSP-trueDSP)
+            # print(key + ": ", trueDCp)
+            npDCpError = np.abs(DCp-trueDCp)
+            
+            meanUSP += npUSPError
+            meanDSP += npDSPError
+            meanDCp += npDCpError
+            
+
+        meanUSP /= n
+        meanDSP /= n
+        meanDCp /= n
+        
+        
+        # print(len(meanUSP))
+        # print(len(meanDSP))
+        # print(len(meanDCp))
+        
     
         modelStrSplit = model.split("@")
                 
@@ -104,22 +138,22 @@ with open(resultsFilePath, "w") as resultsFile:
             label = shortNameDict[modelStrSplit[0]] #+ "@" + modelStrSplit[-1]
         
         plt.figure(1)
-        plt.plot(steps, meanL2u, label=label)
+        plt.plot(steps, meanUSP, label=label)
         plt.figure(2)
-        plt.plot(steps, meanL2v, label=label)
+        plt.plot(steps, meanDSP, label=label)
         plt.figure(3)
-        plt.plot(steps, meanL2p, label=label)
+        plt.plot(steps, meanDCp, label=label)
     
     for i in range(1,4):
         plt.figure(i)
         plt.legend()
         plt.yscale("log")
         plt.xlabel("step")
-        plt.ylabel("Mean L2")
+        plt.ylabel("MAE")
     
     plt.figure(1)    
-    plt.savefig("L2u" + ".png", dpi = 600)
+    plt.savefig("MaeDSP" + ".png", dpi = 600)
     plt.figure(2)    
-    plt.savefig("L2v" + ".png", dpi = 600)
+    plt.savefig("MaeUSP" + ".png", dpi = 600)
     plt.figure(3)    
-    plt.savefig("L2p" + ".png", dpi = 600)
+    plt.savefig("MaeDCp" + ".png", dpi = 600)

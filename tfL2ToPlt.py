@@ -12,12 +12,12 @@ resultsFilePath="./resultsL2.csv"
 outputsPath="./outputs/fwdFacingStep/"
 validatorSkip = ["DP5","DP36","DP79","DP86"] # skip data points
 # validatorSkip = [] # skip data points
-dirSkip = [".hydra", "init", "vtp"]
+dirSkip = [".hydra", "init", "vtp", "initFC"]
 
 models = listdir(outputsPath)
 models.sort()
 
-models = ["data1800PlusPhysicsLambda1@500k", "data1800PlusPhysicsLambda1FC@300k"]
+# models = ["data1800PlusPhysicsLambda1@500k", "data1800PlusPhysicsLambda1FC@300k"]
 
 with open(resultsFilePath, "w") as resultsFile:
     writer = csv.writer(resultsFile, delimiter=",")
@@ -26,16 +26,16 @@ with open(resultsFilePath, "w") as resultsFile:
     writer.writerow(firstRow)
     
     plt.figure(1)
-    plt.title("Mean L2 u")
+    plt.title("ME L2 u")
     
     plt.figure(2)
-    plt.title("Mean L2 v")
+    plt.title("ME L2 v")
     
     plt.figure(3)
-    plt.title("Mean L2 p")
+    plt.title("ME L2 p")
     
     for model in models:
-        if model in dirSkip or "100k" in model.split("@")[-1]:
+        if model in dirSkip or "100k" in model.split("@")[-1] or "500k" in model.split("@")[-1]:
         # if model in dirSkip or "100k" in model.split("@")[-1] or "300k" in model.split("@")[-1]:
         # if model in dirSkip:
             # print("skipping ", model)
@@ -110,7 +110,7 @@ with open(resultsFilePath, "w") as resultsFile:
         plt.legend()
         plt.yscale("log")
         plt.xlabel("step")
-        plt.ylabel("Mean L2")
+        plt.ylabel("ME L2")
     
     plt.figure(1)    
     plt.savefig("L2u" + ".png", dpi = 600)

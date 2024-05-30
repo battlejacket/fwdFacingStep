@@ -20,7 +20,7 @@ class modulusOptProblem(Problem):
         super().__init__(n_var=n_var, n_obj=n_obj, xl=xl, xu=xu)
         self.gen = 0
         self.reynoldsNr= reNr
-        self.maxDesignsPerEvaluation = 200
+        self.maxDesignsPerEvaluation = 100
         self.path = path
         # self.path = "./outputs/fwdFacingStep/data1800PlusPhysicsLambda01@500k"
         self.configFileDir = self.path+"/conf/"
@@ -101,7 +101,7 @@ xu=np.array([0.95,float(param_ranges[Ho][1])])
 # xu=np.array([float(param_ranges[Lo][1]),float(param_ranges[Ho][1])])
 
 outputsPath="./outputs/fwdFacingStep/"
-dirSkip = [".hydra", "init"]
+dirSkip = [".hydra", "init", "initFC"]
 
 optResultsPath = "./optimizationResultsReducedRange/"
 
