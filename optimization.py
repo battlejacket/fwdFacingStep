@@ -50,10 +50,10 @@ class modulusOptProblem(Problem):
         print("Generation " + str(self.gen) + ": Evaluating " + str(allDesigns.shape[0]) + " Designs in " + str(batches) + " Batches")
         for designs in np.array_split(ary=allDesigns, indices_or_sections=batches):
             # run modulus
-            with contextlib.redirect_stdout(io.StringIO()):
-                p = Process(target=ffs, args=(designs,self.reynoldsNr, self.configFileDir[2:], "config", True))
-                p.start()
-                p.join() 
+            # with contextlib.redirect_stdout(io.StringIO()):
+            p = Process(target=ffs, args=(designs,self.reynoldsNr, self.configFileDir[2:], "config", True))
+            p.start()
+            p.join() 
             # read result files
             for design in enumerate(designs):
                 # read upstream pressure
@@ -108,12 +108,13 @@ optResultsPath = "./optimizationResultsReducedRange/"
 # models = ["data1800PlusPhysicsLambda01@500k"]
 models = listdir(outputsPath)
 models.sort()
-# models = ["data1800PlusPhysicsLambda1@100k2pO@300k", "data1800PlusPhysicsLambda1@100k2pO@500k", "data1800PlusPhysicsLambda1@300k2pO@500k"]
+models = ["data1800PlusPhysicsLambda1FC@300k", "data1800PlusPhysicsLambda01FC@300k"]
 
 print(models)
 
 for model in models:
-    if model in dirSkip or "100k" in model.split("@")[-1] or "300k" in model.split("@")[-1]:
+    # if model in dirSkip or "100k" in model.split("@")[-1] or "300k" in model.split("@")[-1]:
+    if model in dirSkip:
         print("skipping ", model)
         continue
         

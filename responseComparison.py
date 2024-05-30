@@ -78,7 +78,7 @@ Lo = np.arange(0.2, 1.05, 0.0125)
 models = listdir(outputsPath)
 models.sort()
 
-models = ["data1800PlusPhysicsLambda1@500k", "data1800PlusPhysicsLambda1FC@300k"]
+models = ["data1800PlusPhysicsLambda1@300k", "physicsOnlyFC@300k", "physicsOnly@300k", "data1800PlusPhysicsLambda1FC@300k", "data1800PlusPhysicsLambda01FC@300k"]
 
 
 for model in models:

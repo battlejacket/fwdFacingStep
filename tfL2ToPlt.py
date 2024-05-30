@@ -5,18 +5,8 @@ import csv
 from os import listdir
 import numpy as np
 import matplotlib.pyplot as plt
+from shortNames import shortNameDict
 
-shortNameDict = {
-    "data1800PlusPhysicsLambda1": "D+P$\_W_d1$",
-    # "data1800PlusPhysicsLambda1": "D+P_L1",
-    "data1800PlusPhysicsLambda01": "D+P$\_W_d0.1$",
-    # "data1800PlusPhysicsLambda01": "D+P_L0.1",
-    "dataOnly1800": "D",
-    "physicsOnly": "P",
-    "pressureDataPlusPhysicsLambda1": "PD+P",
-    "data1800PlusPhysicsLambda1FC" : "D+P FC",
-    "2pO": "ToP"
-}
 
 resultsFilePath="./resultsL2.csv"
 outputsPath="./outputs/fwdFacingStep/"
