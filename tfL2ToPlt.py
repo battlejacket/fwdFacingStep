@@ -14,6 +14,7 @@ shortNameDict = {
     "dataOnly1800": "D",
     "physicsOnly": "P",
     "pressureDataPlusPhysicsLambda1": "PD+P",
+    "data1800PlusPhysicsLambda1FC" : "D+P FC",
     "2pO": "ToP"
 }
 
@@ -23,11 +24,10 @@ validatorSkip = ["DP5","DP36","DP79","DP86"] # skip data points
 # validatorSkip = [] # skip data points
 dirSkip = [".hydra", "init", "vtp"]
 
-# models = ["data3600PlusPhysicsLambda05@500k", "data3600PlusPhysicsLambda1@500k", "physicsOnly@500k"]
 models = listdir(outputsPath)
 models.sort()
 
-# models = ["physicsOnly@500k", "data1800PlusPhysicsLambda01@500k"]
+models = ["data1800PlusPhysicsLambda1@500k", "data1800PlusPhysicsLambda1FC@300k"]
 
 with open(resultsFilePath, "w") as resultsFile:
     writer = csv.writer(resultsFile, delimiter=",")
@@ -45,7 +45,8 @@ with open(resultsFilePath, "w") as resultsFile:
     plt.title("Mean L2 p")
     
     for model in models:
-        if model in dirSkip or "100k" in model.split("@")[-1] or "300k" in model.split("@")[-1]:
+        if model in dirSkip or "100k" in model.split("@")[-1]:
+        # if model in dirSkip or "100k" in model.split("@")[-1] or "300k" in model.split("@")[-1]:
         # if model in dirSkip:
             # print("skipping ", model)
             continue
@@ -53,9 +54,9 @@ with open(resultsFilePath, "w") as resultsFile:
         
         log_dir = outputsPath + model
 
-        meanL2u = np.zeros(501)
-        meanL2v = np.zeros(501)
-        meanL2p = np.zeros(501)
+        # meanL2u = np.zeros(501)
+        # meanL2v = np.zeros(501)
+        # meanL2p = np.zeros(501)
 
         ea = EventAccumulator(log_dir, size_guidance={event_accumulator.TENSORS: 0})
         ea.Reload()
@@ -81,6 +82,10 @@ with open(resultsFilePath, "w") as resultsFile:
                         steps.append(step)
                     pStep = step
 
+                if n == 0:
+                    meanL2u = np.zeros(len(values))
+                    meanL2v = np.zeros(len(values))
+                    meanL2p = np.zeros(len(values))
                 
                 if 'error_u' in tag:
                     meanL2u += np.array(values)
