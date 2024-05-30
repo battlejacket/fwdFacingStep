@@ -31,8 +31,7 @@ run_mode: "train"
 
 network_dir: "pressureDataPlusPhysics"
 
-initialization_network_dir : "initFC"
-# initialization_network_dir : "init"
+initialization_network_dir : "init"
 
 optimizer: 
   lr: 5e-4                   # Change this based on arch chosen
@@ -54,6 +53,8 @@ custom:
   lambda_v_d: 0.1
   usePhysics: True
   interiorUHR: False
+  netArch: "Fourier"
+
 
 
 batch_size:

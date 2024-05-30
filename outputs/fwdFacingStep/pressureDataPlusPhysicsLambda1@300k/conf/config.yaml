@@ -53,6 +53,8 @@ custom:
   lambda_v_d: 1
   usePhysics: True
   interiorUHR: False
+  netArch: "Fourier"
+
 
 
 batch_size:
