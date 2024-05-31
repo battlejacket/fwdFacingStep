@@ -94,16 +94,17 @@ class modulusOptProblem(Problem):
         elapsed_time = time.time() - strat_time
         print("Evaluation time: ", elapsed_time)
 
-xl=np.array([0.25,float(param_ranges[Ho][0])])
-xu=np.array([0.95,float(param_ranges[Ho][1])])
+# xl=np.array([0.25,float(param_ranges[Ho][0])])
+# xu=np.array([0.95,float(param_ranges[Ho][1])])
 
-# xl=np.array([float(param_ranges[Lo][0]),float(param_ranges[Ho][0])])
-# xu=np.array([float(param_ranges[Lo][1]),float(param_ranges[Ho][1])])
+xl=np.array([float(param_ranges[Lo][0]),float(param_ranges[Ho][0])])
+xu=np.array([float(param_ranges[Lo][1]),float(param_ranges[Ho][1])])
 
 outputsPath="./outputs/fwdFacingStep/"
 dirSkip = [".hydra", "init", "initFC"]
 
-optResultsPath = "./optimizationResultsReducedRange/"
+optResultsPath = "./optimizationResults/"
+# optResultsPath = "./optimizationResultsReducedRange/"
 
 # models = ["data1800PlusPhysicsLambda01@500k"]
 models = listdir(outputsPath)
