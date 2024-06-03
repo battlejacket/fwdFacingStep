@@ -54,7 +54,7 @@ def evaluate(designs, path, reynoldsNr) :
     filePattern = "*.csv"
     filePaths = glob.glob(os.path.join(path_monitors, filePattern))
     for file_path in filePaths:
-        if "_design_" not in file_path:
+        if "_design_" in file_path:
             os.remove(file_path)
     
     filePattern = "events.out.tfevents*"
@@ -78,7 +78,7 @@ Lo = np.arange(0.2, 1.05, 0.0125)
 models = listdir(outputsPath)
 models.sort()
 
-models = ["data1800PlusPhysicsLambda1@300k", "physicsOnlyFC@300k", "physicsOnly@300k", "data1800PlusPhysicsLambda1FC@300k", "data1800PlusPhysicsLambda01FC@300k"]
+models = ["physicsOnlyFC@300k", "physicsOnly@500k", "data1800PlusPhysicsLambda1FC@500k", "data1800PlusPhysicsLambda1@500k"]
 
 
 for model in models:
