@@ -94,22 +94,22 @@ class modulusOptProblem(Problem):
         elapsed_time = time.time() - strat_time
         print("Evaluation time: ", elapsed_time)
 
-# xl=np.array([0.25,float(param_ranges[Ho][0])])
-# xu=np.array([0.95,float(param_ranges[Ho][1])])
+xl=np.array([0.25,float(param_ranges[Ho][0])])
+xu=np.array([0.95,float(param_ranges[Ho][1])])
 
-xl=np.array([float(param_ranges[Lo][0]),float(param_ranges[Ho][0])])
-xu=np.array([float(param_ranges[Lo][1]),float(param_ranges[Ho][1])])
+# xl=np.array([float(param_ranges[Lo][0]),float(param_ranges[Ho][0])])
+# xu=np.array([float(param_ranges[Lo][1]),float(param_ranges[Ho][1])])
 
 outputsPath="./outputs/fwdFacingStep/"
 dirSkip = [".hydra", "init", "initFC"]
 
-optResultsPath = "./optimizationResults/"
-# optResultsPath = "./optimizationResultsReducedRange/"
+# optResultsPath = "./optimizationResults/"
+optResultsPath = "./optimizationResultsReducedRange/"
 
 # models = ["data1800PlusPhysicsLambda01@500k"]
 models = listdir(outputsPath)
 models.sort()
-models = ["data1800PlusPhysicsLambda1FC@300k", "data1800PlusPhysicsLambda01FC@300k"]
+models = ["data1800PlusPhysicsLambda1FC@500k", "data1800PlusPhysicsLambda01FC@500k"]
 
 print(models)
 
@@ -122,7 +122,7 @@ for model in models:
     path = outputsPath + model
     optPath = optResultsPath + model
     
-    for reNr in range (100, 1100, 100):
+    for reNr in range (300, 1100, 100):
 
         if os.path.exists(optPath + "/optResultsX" + str(reNr) + ".npy"):
             print("skipping ", optPath + " " + str(reNr))
