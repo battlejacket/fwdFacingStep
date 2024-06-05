@@ -1,5 +1,5 @@
 from tensorboard.backend.event_processing.event_accumulator import EventAccumulator
-from statistics import mean 
+from statistics import mean, stdev
 import csv
 from os import listdir
 
@@ -29,11 +29,13 @@ models.sort()
 with open(resultsFilePath, "w") as resultsFile:
     writer = csv.writer(resultsFile, delimiter=",")
     
-    firstRow = ["model", "u mean", "u min", "u max", "v mean", "v min", "v max", "p mean", "p min", "p max"]
+    firstRow = ["model", "u mean", "u std", "v mean", "v std", "p mean", "p std"]
+    # firstRow = ["model", "u mean", "u min", "u max", "v mean", "v min", "v max", "p mean", "p min", "p max"]
     writer.writerow(firstRow)
     
     for model in models:
-        if model in dirSkip:
+        if model in dirSkip or "100k" in model.split("@")[-1] or "300k" in model.split("@")[-1]:
+        # if model in dirSkip:
             # print("skipping ", model)
             continue
         # print("reading ", model)
@@ -74,6 +76,10 @@ with open(resultsFilePath, "w") as resultsFile:
         l2vMean = mean(l2v)
         l2pMean = mean(l2p)
 
+        l2uStd = stdev(l2u)
+        l2vStd = stdev(l2v)
+        l2pStd = stdev(l2p)
+
         modelStrSplit = model.split("@")
                 
         if len(modelStrSplit) == 3:
@@ -81,7 +87,8 @@ with open(resultsFilePath, "w") as resultsFile:
         elif len(modelStrSplit) == 2:
             label = shortNameDict[modelStrSplit[0]] + "@" + modelStrSplit[-1]
 
-        row = [label, l2uMean, l2uMin[1], str(l2uMax[1]) + " " + l2uMax[0], l2vMean, l2vMin[1], str(l2vMax[1]) + " " +  l2vMax[0], l2pMean, l2pMin[1], str(l2pMax[1]) + " " +  l2pMax[0]]
+        # row = [label, l2uMean, l2uMin[1], str(l2uMax[1]) + " " + l2uMax[0], l2vMean, l2vMin[1], str(l2vMax[1]) + " " +  l2vMax[0], l2pMean, l2pMin[1], str(l2pMax[1]) + " " +  l2pMax[0]]
+        row = [label, l2uMean, l2uStd, l2vMean, l2vStd, l2pMean, l2pStd]
         writer.writerow(row)
         
         latexStr = label
