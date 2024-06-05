@@ -180,7 +180,6 @@ def ffs(designs=[], reynoldsNr=500, config_path="conf", config_name="config", op
             + [flow_net.make_node(name="flow_network")
             ] + [Node.from_sympy(Re/1000, "Re_norm")
             ] + [Node.from_sympy(Um*D1/Re, "nu")
-            # ] + [Node.from_sympy(rho*Um*D1/Re, "nu")
             ] + [Node.from_sympy(1*u, "u_d")
             ] + [Node.from_sympy(1*v, "v_d")
             ] + [Node.from_sympy(1*p, "p_d")        
@@ -242,7 +241,8 @@ def ffs(designs=[], reynoldsNr=500, config_path="conf", config_name="config", op
                 outvar={"u": 0, "v": 0},
                 batch_size=cfg.batch_size.NoSlipHR,
                 batch_per_epoch=cfg.batch_size.batchPerEpoch,
-                lambda_weighting={"u": 50, "v": 50},
+                # lambda_weighting={"u": 50, "v": 50},
+                lambda_weighting={"u": 10, "v": 10},
                 criteria=And(noSlipCriteria, noSlipHrCriteria),
                 # criteria=StrictLessThan(y, D1/2),
                 parameterization=pr,
