@@ -2,29 +2,17 @@ from tensorboard.backend.event_processing.event_accumulator import EventAccumula
 from statistics import mean, stdev
 import csv
 from os import listdir
-
-shortNameDict = {
-    "data1800PlusPhysicsLambda1": "D+P$\_W_d1$",
-    # "data1800PlusPhysicsLambda1": "D+P_L1",
-    "data1800PlusPhysicsLambda01": "D+P$\_W_d0.1$",
-    # "data1800PlusPhysicsLambda01": "D+P_L0.1",
-    "dataOnly1800": "D",
-    "physicsOnly": "P",
-    "pressureDataPlusPhysicsLambda1": "PD+P",
-    "2pO": "ToP"
-}
-
+from shortNames import shortNameDict
 
 resultsFilePath="./resultsL2.csv"
 outputsPath="./outputs/fwdFacingStep/"
 validatorSkip = ["DP5","DP36","DP79","DP86"] # skip data points
-dirSkip = [".hydra", "init", "vtp"]
+dirSkip = [".hydra", "init", "initFC", "vtp"]
 
-# models = ["data3600PlusPhysicsLambda05@500k", "data3600PlusPhysicsLambda1@500k", "physicsOnly@500k"]
 models = listdir(outputsPath)
 models.sort()
 
-# models = ["physicsOnly@500k", "data1800PlusPhysicsLambda01@500k", "data1800PlusPhysicsLambda1@500k"]
+models = ["physicsOnlynwlnshr@500k", "physicsOnlyFCnwlnshr@500k", "physicsOnly@500k", "physicsOnlyFC@500k"]
 
 with open(resultsFilePath, "w") as resultsFile:
     writer = csv.writer(resultsFile, delimiter=",")
@@ -83,9 +71,9 @@ with open(resultsFilePath, "w") as resultsFile:
         modelStrSplit = model.split("@")
                 
         if len(modelStrSplit) == 3:
-            label = shortNameDict[modelStrSplit[0]] + "@" + modelStrSplit[1].split("k")[0] + "k" + shortNameDict[modelStrSplit[1].split("k")[-1]] + "@" + modelStrSplit[-1]
+            label = shortNameDict[modelStrSplit[0]] + shortNameDict[modelStrSplit[1].split("k")[-1]] + "@" + modelStrSplit[1].split("k")[0] + "k"#+ "@" + modelStrSplit[-1]
         elif len(modelStrSplit) == 2:
-            label = shortNameDict[modelStrSplit[0]] + "@" + modelStrSplit[-1]
+            label = shortNameDict[modelStrSplit[0]] # + "@" + modelStrSplit[-1]
 
         # row = [label, l2uMean, l2uMin[1], str(l2uMax[1]) + " " + l2uMax[0], l2vMean, l2vMin[1], str(l2vMax[1]) + " " +  l2vMax[0], l2pMean, l2pMin[1], str(l2pMax[1]) + " " +  l2pMax[0]]
         row = [label, l2uMean, l2uStd, l2vMean, l2vStd, l2pMean, l2pStd]
@@ -95,8 +83,8 @@ with open(resultsFilePath, "w") as resultsFile:
             
         for value in row[1:]:
             # print(value)
-            # valueF = round(float(value), 4)
-            # latexStr += " & " + "%.4f" % valueF
-            latexStr += " & " + str(value)
+            valueF = round(float(value), 3)
+            latexStr += " & " + "%.3f" % valueF
+            # latexStr += " & " + str(value)
         latexStr += " \\\\"
         print(latexStr)
