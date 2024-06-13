@@ -29,17 +29,21 @@ def name2data(name):
         data['train'] = 'D'
     elif 'pressureData' in name and 'PlusPhysics' in name:
         data['train'] = 'PD+P'
-    elif 'Data' in name and 'PlusPhysics' in name:
+    elif 'data' in name and 'PlusPhysics' in name:
         data['train'] = 'D+P'
         
     if 'Lambda1' in name:
         data['Wd'] = '1'
     elif 'Lambda01' in name:
         data['Wd'] = '0.1'
+    else:
+        data['Wd'] = '-'
     
     # if len(name.split("@")) < 2:
     if '2pO' in name:
         data['2P'] = True
         data['2PStep'] = name.split('@')[1].split('k')[0]
-                
+    else:
+        data['2P'] = False
+        data['2PStep'] = '-'
     return data
