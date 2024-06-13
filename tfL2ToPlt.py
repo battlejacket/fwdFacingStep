@@ -17,7 +17,7 @@ dirSkip = [".hydra", "init", "vtp", "initFC"]
 models = listdir(outputsPath)
 models.sort()
 
-# models = ["data1800PlusPhysicsLambda1@500k", "data1800PlusPhysicsLambda1FC@300k"]
+models = ["physicsOnlynwlnshr@500k", "physicsOnlyFCnwlnshr@500k", "physicsOnly@500k", "physicsOnlyFC@500k"]
 
 with open(resultsFilePath, "w") as resultsFile:
     writer = csv.writer(resultsFile, delimiter=",")
@@ -35,7 +35,7 @@ with open(resultsFilePath, "w") as resultsFile:
     plt.title("ME L2 p")
     
     for model in models:
-        if model in dirSkip or "100k" in model.split("@")[-1] or "500k" in model.split("@")[-1]:
+        if model in dirSkip or "100k" in model.split("@")[-1] or "300k" in model.split("@")[-1]:
         # if model in dirSkip or "100k" in model.split("@")[-1] or "300k" in model.split("@")[-1]:
         # if model in dirSkip:
             # print("skipping ", model)
