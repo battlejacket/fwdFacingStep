@@ -41,9 +41,11 @@ def name2data(name):
     
     # if len(name.split("@")) < 2:
     if '2pO' in name:
-        data['2P'] = True
+        # data['2P'] = True
         data['2PStep'] = name.split('@')[1].split('k')[0]
+    elif 'data' in name:
+        data['2PStep'] = '500'
     else:
-        data['2P'] = False
+        # data['2P'] = False
         data['2PStep'] = '-'
     return data

@@ -2,7 +2,7 @@ from tensorboard.backend.event_processing.event_accumulator import EventAccumula
 from statistics import mean, stdev
 import csv
 from os import listdir
-from shortNames import shortNameDict
+from shortNames import name2data #shortNameDict
 
 resultsFilePath="./resultsL2.csv"
 outputsPath="./outputs/fwdFacingStep/"
@@ -12,7 +12,7 @@ dirSkip = [".hydra", "init", "initFC", "vtp"]
 models = listdir(outputsPath)
 models.sort()
 
-models = ["physicsOnlynwlnshr@500k", "physicsOnlyFCnwlnshr@500k", "physicsOnly@500k", "physicsOnlyFC@500k"]
+# models = ["physicsOnlynwlnshr@500k", "physicsOnlyFCnwlnshr@500k", "physicsOnly@500k", "physicsOnlyFC@500k"]
 
 with open(resultsFilePath, "w") as resultsFile:
     writer = csv.writer(resultsFile, delimiter=",")
@@ -20,13 +20,14 @@ with open(resultsFilePath, "w") as resultsFile:
     firstRow = ["model", "u mean", "u std", "v mean", "v std", "p mean", "p std"]
     # firstRow = ["model", "u mean", "u min", "u max", "v mean", "v min", "v max", "p mean", "p min", "p max"]
     writer.writerow(firstRow)
+    data = []
     
     for model in models:
         if model in dirSkip or "100k" in model.split("@")[-1] or "300k" in model.split("@")[-1]:
         # if model in dirSkip:
             # print("skipping ", model)
             continue
-        # print("reading ", model)
+        print("reading ", model)
         
         log_dir = outputsPath + model
 
@@ -34,7 +35,6 @@ with open(resultsFilePath, "w") as resultsFile:
         l2v = []
         l2p = []
         names = []
-
 
         event_accumulator = EventAccumulator(log_dir)
         event_accumulator.Reload()
@@ -68,23 +68,58 @@ with open(resultsFilePath, "w") as resultsFile:
         l2vStd = stdev(l2v)
         l2pStd = stdev(l2p)
 
-        modelStrSplit = model.split("@")
+        # modelStrSplit = model.split("@")
                 
-        if len(modelStrSplit) == 3:
-            label = shortNameDict[modelStrSplit[0]] + shortNameDict[modelStrSplit[1].split("k")[-1]] + "@" + modelStrSplit[1].split("k")[0] + "k"#+ "@" + modelStrSplit[-1]
-        elif len(modelStrSplit) == 2:
-            label = shortNameDict[modelStrSplit[0]] # + "@" + modelStrSplit[-1]
+        # if len(modelStrSplit) == 3:
+        #     label = shortNameDict[modelStrSplit[0]] + shortNameDict[modelStrSplit[1].split("k")[-1]] + "@" + modelStrSplit[1].split("k")[0] + "k"#+ "@" + modelStrSplit[-1]
+        # elif len(modelStrSplit) == 2:
+        #     label = shortNameDict[modelStrSplit[0]] # + "@" + modelStrSplit[-1]
 
-        # row = [label, l2uMean, l2uMin[1], str(l2uMax[1]) + " " + l2uMax[0], l2vMean, l2vMin[1], str(l2vMax[1]) + " " +  l2vMax[0], l2pMean, l2pMin[1], str(l2pMax[1]) + " " +  l2pMax[0]]
-        row = [label, l2uMean, l2uStd, l2vMean, l2vStd, l2pMean, l2pStd]
-        writer.writerow(row)
+        # # row = [label, l2uMean, l2uMin[1], str(l2uMax[1]) + " " + l2uMax[0], l2vMean, l2vMin[1], str(l2vMax[1]) + " " +  l2vMax[0], l2pMean, l2pMin[1], str(l2pMax[1]) + " " +  l2pMax[0]]
+        # row = [label, l2uMean, l2uStd, l2vMean, l2vStd, l2pMean, l2pStd]
+        # writer.writerow(row)
         
-        latexStr = label
+        # latexStr = label
             
-        for value in row[1:]:
-            # print(value)
+        # for value in row[1:]:
+        #     # print(value)
+        #     valueF = round(float(value), 3)
+        #     latexStr += " & " + "%.3f" % valueF
+        #     # latexStr += " & " + str(value)
+        # latexStr += " \\\\"
+        # print(latexStr)
+        
+        modelData = name2data(model)
+        
+        # modelData[]
+            
+        # row = [label, meanDSP, minDSP, maxDSP, meanUSP, minUSP, maxUSP, meanDCp, minDCp, maxDCp]
+        row = [modelData['train'], modelData['Wd'], modelData['2PStep'], modelData['arch'], l2uMean, l2uStd, l2vMean, l2vStd, l2pMean, l2pStd]
+        
+        
+        data.append(row)
+        
+    # popsorted=pop[pop[:, -1].argsort()]
+
+    # dataSorted = data[data[:,0].argsort()]
+    dataSorted = data
+
+
+    print(data)
+    
+    for row in dataSorted:
+        
+        writer.writerow(row)
+        # latexStr = label
+        latexStr = ''
+        for value in row[0:3]:
+            # print('f ',value)
+            latexStr += str(value) + ' & '
+        latexStr += str(row[3])
+        for value in row[4:]:
+            # print('d ', value)
             valueF = round(float(value), 3)
+            # latexStr += "%.3f" % valueF
             latexStr += " & " + "%.3f" % valueF
-            # latexStr += " & " + str(value)
         latexStr += " \\\\"
-        print(latexStr)
+        print(latexStr) 
