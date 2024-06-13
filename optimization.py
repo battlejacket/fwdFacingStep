@@ -3,7 +3,7 @@ import dill
 import os, glob, io, time
 from os import listdir
 import csv
-from fwdFacingStep import ffs, param_ranges, Re, Ho, Lo
+from fwdFacingStep_fl import ffs, param_ranges, Re, Ho, Lo
 from pymoo.optimize import minimize
 from pymoo.core.problem import Problem
 from pymoo.algorithms.moo.nsga2 import NSGA2
