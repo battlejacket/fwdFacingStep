@@ -19,14 +19,7 @@ valueList = [
     # {"useData": True, "usePhysics": True, "batchesData": 1800, "lambda_p_d": 1, "lambda_u_d": 1, "lambda_v_d": 1, "netArch": "FC", "initialization_network_dir": "initFC", "network_dir": "data1800PlusPhysicsLambda1FC", "max_steps": 300000},
     # {"useData": True, "usePhysics": True, "batchesData": 1800, "lambda_p_d": 1, "lambda_u_d": 1, "lambda_v_d": 1, "netArch": "FC", "initialization_network_dir": "initFC", "network_dir": "data1800PlusPhysicsLambda1FC", "max_steps": 500000},
     
-    # pressureDataPlusPhysicsLambda01FC (est 20h) OK
-    {"useData": True, "usePhysics": True, "pressureDataOnly": True, "lambda_p_d": 0.1, "lambda_u_d": 0.1, "lambda_v_d": 0.1, "netArch": "FC", "initialization_network_dir": "initFC", "network_dir": "pressureDataPlusPhysicsLambda01FC", "max_steps": 100000},
-    {"useData": True, "usePhysics": True, "pressureDataOnly": True, "lambda_p_d": 0.1, "lambda_u_d": 0.1, "lambda_v_d": 0.1, "netArch": "FC", "initialization_network_dir": "initFC", "network_dir": "pressureDataPlusPhysicsLambda01FC", "max_steps": 300000},
-    {"useData": True, "usePhysics": True, "pressureDataOnly": True, "lambda_p_d": 0.1, "lambda_u_d": 0.1, "lambda_v_d": 0.1, "netArch": "FC", "initialization_network_dir": "initFC", "network_dir": "pressureDataPlusPhysicsLambda01FC", "max_steps": 500000},
-    # pressureDataPlusPhysicsLambda1FC (est 20h) OK
-    {"useData": True, "usePhysics": True, "pressureDataOnly": True, "lambda_p_d": 1, "lambda_u_d": 1, "lambda_v_d": 1, "netArch": "FC", "initialization_network_dir": "initFC", "network_dir": "pressureDataPlusPhysicsLambda1FC", "max_steps": 100000},
-    {"useData": True, "usePhysics": True, "pressureDataOnly": True, "lambda_p_d": 1, "lambda_u_d": 1, "lambda_v_d": 1, "netArch": "FC", "initialization_network_dir": "initFC", "network_dir": "pressureDataPlusPhysicsLambda1FC", "max_steps": 300000},
-    {"useData": True, "usePhysics": True, "pressureDataOnly": True, "lambda_p_d": 1, "lambda_u_d": 1, "lambda_v_d": 1, "netArch": "FC", "initialization_network_dir": "initFC", "network_dir": "pressureDataPlusPhysicsLambda1FC", "max_steps": 500000},
+
     
     # # dataOnly1800FC (est <8h) OK 
     # {"useData": True, "usePhysics": False, "batchesData": 1800, "netArch": "FC", "initialization_network_dir": "initFC", "network_dir": "dataOnly1800FC", "max_steps": 100000},
@@ -53,10 +46,21 @@ valueList = [
     # {"useData": True, "usePhysics": False, "batchesData": 1800, "network_dir": "dataOnly1800", "max_steps": 300000},
     # {"useData": True, "usePhysics": False, "batchesData": 1800, "network_dir": "dataOnly1800", "max_steps": 500000},
     
+    # pressureDataPlusPhysicsLambda01FC (est 20h) OK
+    # {"useData": True, "usePhysics": True, "pressureDataOnly": True, "lambda_p_d": 0.1, "lambda_u_d": 0.1, "lambda_v_d": 0.1, "netArch": "FC", "initialization_network_dir": "initFC", "network_dir": "pressureDataPlusPhysicsLambda01FC", "max_steps": 100000},
+    # {"useData": True, "usePhysics": True, "pressureDataOnly": True, "lambda_p_d": 0.1, "lambda_u_d": 0.1, "lambda_v_d": 0.1, "netArch": "FC", "initialization_network_dir": "initFC", "network_dir": "pressureDataPlusPhysicsLambda01FC", "max_steps": 300000},
+    # {"useData": True, "usePhysics": True, "pressureDataOnly": True, "lambda_p_d": 0.1, "lambda_u_d": 0.1, "lambda_v_d": 0.1, "netArch": "FC", "initialization_network_dir": "initFC", "network_dir": "pressureDataPlusPhysicsLambda01FC", "max_steps": 500000},
+    
     # pressureDataPlusPhysicsLambda01 (est 20h)
     {"useData": True, "usePhysics": True, "pressureDataOnly": True, "lambda_p_d": 0.1, "lambda_u_d": 0.1, "lambda_v_d": 0.1, "network_dir": "pressureDataPlusPhysicsLambda01", "max_steps": 100000},
     {"useData": True, "usePhysics": True, "pressureDataOnly": True, "lambda_p_d": 0.1, "lambda_u_d": 0.1, "lambda_v_d": 0.1, "network_dir": "pressureDataPlusPhysicsLambda01", "max_steps": 300000},
     {"useData": True, "usePhysics": True, "pressureDataOnly": True, "lambda_p_d": 0.1, "lambda_u_d": 0.1, "lambda_v_d": 0.1, "network_dir": "pressureDataPlusPhysicsLambda01", "max_steps": 500000},
+    
+    # pressureDataPlusPhysicsLambda1FC (est 20h) OK
+    {"useData": True, "usePhysics": True, "pressureDataOnly": True, "lambda_p_d": 1, "lambda_u_d": 1, "lambda_v_d": 1, "netArch": "FC", "initialization_network_dir": "initFC", "network_dir": "pressureDataPlusPhysicsLambda1FC", "max_steps": 100000},
+    {"useData": True, "usePhysics": True, "pressureDataOnly": True, "lambda_p_d": 1, "lambda_u_d": 1, "lambda_v_d": 1, "netArch": "FC", "initialization_network_dir": "initFC", "network_dir": "pressureDataPlusPhysicsLambda1FC", "max_steps": 300000},
+    {"useData": True, "usePhysics": True, "pressureDataOnly": True, "lambda_p_d": 1, "lambda_u_d": 1, "lambda_v_d": 1, "netArch": "FC", "initialization_network_dir": "initFC", "network_dir": "pressureDataPlusPhysicsLambda1FC", "max_steps": 500000},
+    
     # pressureDataPlusPhysicsLambda1 (est 20h)
     {"useData": True, "usePhysics": True, "pressureDataOnly": True, "lambda_p_d": 1, "lambda_u_d": 1, "lambda_v_d": 1, "network_dir": "pressureDataPlusPhysicsLambda1", "max_steps": 100000},
     {"useData": True, "usePhysics": True, "pressureDataOnly": True, "lambda_p_d": 1, "lambda_u_d": 1, "lambda_v_d": 1, "network_dir": "pressureDataPlusPhysicsLambda1", "max_steps": 300000},
