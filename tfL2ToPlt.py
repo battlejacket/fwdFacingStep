@@ -9,15 +9,17 @@ from shortNames import shortNameDict
 
 
 resultsFilePath="./resultsL2.csv"
-outputsPath="./outputs/fwdFacingStep/"
+outputsPath="./outputs/fwdFacingStep_fl/"
 validatorSkip = ["DP5","DP36","DP79","DP86"] # skip data points
 # validatorSkip = [] # skip data points
 dirSkip = [".hydra", "init", "vtp", "initFC"]
 
-models = listdir(outputsPath)
-models.sort()
+# models = listdir(outputsPath)
+# models.sort()
 
-models = ["physicsOnlynwlnshr@500k", "physicsOnlyFCnwlnshr@500k", "physicsOnly@500k", "physicsOnlyFC@500k"]
+models = ["dataOnly1800FC@500k", "dataOnly1800@500k", "physicsOnlyFC@500k", "physicsOnly@500k"]
+# models = ["data1800PlusPhysicsLambda1FC@500k", "data1800PlusPhysicsLambda1@500k", "data1800PlusPhysicsLambda01FC@500k", "data1800PlusPhysicsLambda01@500k"]
+# models = ["pressureDataPlusPhysicsLambda1FC@500k", "pressureDataPlusPhysicsLambda1@500k"]
 
 with open(resultsFilePath, "w") as resultsFile:
     writer = csv.writer(resultsFile, delimiter=",")
@@ -35,7 +37,7 @@ with open(resultsFilePath, "w") as resultsFile:
     plt.title("ME L2 p")
     
     for model in models:
-        if model in dirSkip or "100k" in model.split("@")[-1] or "300k" in model.split("@")[-1]:
+        if model in dirSkip or "100k" in model.split("@")[-1] or "300k" in model.split("@")[-1] or "300k" in model.split("@")[-2]:
         # if model in dirSkip or "100k" in model.split("@")[-1] or "300k" in model.split("@")[-1]:
         # if model in dirSkip:
             # print("skipping ", model)
@@ -99,7 +101,10 @@ with open(resultsFilePath, "w") as resultsFile:
             label = shortNameDict[modelStrSplit[0]] #+ "@" + modelStrSplit[-1]
         
         plt.figure(1)
+        # ax = plt.subplot(111)
         plt.plot(steps, meanL2u, label=label)
+        # ax.plot(steps, meanL2u, label=label)
+        # ax.legend(bbox_to_anchor=(2, 2))
         plt.figure(2)
         plt.plot(steps, meanL2v, label=label)
         plt.figure(3)
@@ -108,7 +113,7 @@ with open(resultsFilePath, "w") as resultsFile:
     for i in range(1,4):
         plt.figure(i)
         plt.legend()
-        plt.yscale("log")
+        # plt.yscale("log")
         plt.xlabel("step")
         plt.ylabel("ME L2")
     

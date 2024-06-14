@@ -1,19 +1,33 @@
+# shortNameDict = {
+#     "data1800PlusPhysicsLambda1": "F D+P $W_d=1$",
+#     # "data1800PlusPhysicsLambda1": "D+P_L1",
+#     "data1800PlusPhysicsLambda01": "F D+P $W_d=0.1$",
+#     # "data1800PlusPhysicsLambda01": "D+P_L0.1",
+#     "dataOnly1800": "Fourier D",
+#     "dataOnly1800FC": "FC D",
+#     "physicsOnly": "F P",
+#     "physicsOnlyFC": "FC P",
+#     "pressureDataPlusPhysicsLambda1": "F PD+P",
+#     "pressureDataPlusPhysicsLambda1FC": "FC PD+P",
+#     "data1800PlusPhysicsLambda1FC" : "FC D+P $W_d=1$",
+#     "data1800PlusPhysicsLambda01FC" : "FC D+P $W_d=0.1$",
+#     "physicsOnlynwlnshr": "F P NL", 
+#     "physicsOnlyFCnwlnshr": "FC P NL", 
+#     "2pO": " > P "
+# }
+
 shortNameDict = {
-    "data1800PlusPhysicsLambda1": "F D+P $W_d=1$",
-    # "data1800PlusPhysicsLambda1": "D+P_L1",
-    "data1800PlusPhysicsLambda01": "F D+P $W_d=0.1$",
-    # "data1800PlusPhysicsLambda01": "D+P_L0.1",
-    "dataOnly1800": "F D",
-    "dataOnly1800FC": "FC D",
-    "physicsOnly": "F P",
-    "physicsOnlyFC": "FC P",
-    "pressureDataPlusPhysicsLambda1": "F PD+P",
-    "pressureDataPlusPhysicsLambda1FC": "FC PD+P",
-    "data1800PlusPhysicsLambda1FC" : "FC D+P $W_d=1$",
-    "data1800PlusPhysicsLambda01FC" : "FC D+P $W_d=0.1$",
-    "physicsOnlynwlnshr": "F P NL", 
-    "physicsOnlyFCnwlnshr": "FC P NL", 
-    "2pO": " > P "
+    "data1800PlusPhysicsLambda1": "Fourier, Data+Physics, $W_d=1$",
+    "data1800PlusPhysicsLambda01": "Fourier, Data+Physics, $W_d=0.1$",
+    "dataOnly1800": "Fourier, Data",
+    "dataOnly1800FC": "Fully Connected, Data",
+    "physicsOnly": "Fourier, Physics",
+    "physicsOnlyFC": "Fully Connected, Physics",
+    "pressureDataPlusPhysicsLambda1": "Fourier, Pressure Data+Physics",
+    "pressureDataPlusPhysicsLambda1FC": "Fully Connected, Pressure Data+Physics",
+    "data1800PlusPhysicsLambda1FC" : "Fully Connected, Data+Physics, $W_d=1$",
+    "data1800PlusPhysicsLambda01FC" : "Fully Connected, Data+Physics, $W_d=0.1$",
+    "2pO": " > Physics "
 }
 
 def name2data(name):

@@ -114,7 +114,7 @@ models.sort()
 print(models)
 
 for model in models:
-    if model in dirSkip or "100k" in model.split("@")[-1] or "300k" in model.split("@")[-1]:
+    if model in dirSkip or "100k" in model.split("@")[-1] or "300k" in model.split("@")[-1] or 'FC' not in model:
     # if model in dirSkip:
         print("skipping ", model)
         continue
