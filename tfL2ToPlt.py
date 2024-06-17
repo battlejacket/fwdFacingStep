@@ -9,7 +9,7 @@ from shortNames import shortNameDict
 
 
 resultsFilePath="./resultsL2.csv"
-outputsPath="./outputs/fwdFacingStep_fl/"
+outputsPath="./outputs/fwdFacingStep/"
 validatorSkip = ["DP5","DP36","DP79","DP86"] # skip data points
 # validatorSkip = [] # skip data points
 dirSkip = [".hydra", "init", "vtp", "initFC"]
@@ -17,9 +17,10 @@ dirSkip = [".hydra", "init", "vtp", "initFC"]
 # models = listdir(outputsPath)
 # models.sort()
 
-models = ["dataOnly1800FC@500k", "dataOnly1800@500k", "physicsOnlyFC@500k", "physicsOnly@500k"]
-# models = ["data1800PlusPhysicsLambda1FC@500k", "data1800PlusPhysicsLambda1@500k", "data1800PlusPhysicsLambda01FC@500k", "data1800PlusPhysicsLambda01@500k"]
-# models = ["pressureDataPlusPhysicsLambda1FC@500k", "pressureDataPlusPhysicsLambda1@500k"]
+# models = ["dataOnly1800FC@500k", "dataOnly1800@500k", "physicsOnlyFC@500k", "physicsOnly@500k"]
+models = ["data1800PlusPhysicsLambda1FC@500k", "data1800PlusPhysicsLambda1@500k", "data1800PlusPhysicsLambda01FC@500k", "data1800PlusPhysicsLambda01@500k"]
+models += ["data1800PlusPhysicsLambda1@100k2pO@500k", "data1800PlusPhysicsLambda01@100k2pO@500k"]
+models += ["pressureDataPlusPhysicsLambda1FC@500k", "pressureDataPlusPhysicsLambda1@500k"]
 
 with open(resultsFilePath, "w") as resultsFile:
     writer = csv.writer(resultsFile, delimiter=",")
@@ -28,21 +29,21 @@ with open(resultsFilePath, "w") as resultsFile:
     writer.writerow(firstRow)
     
     plt.figure(1)
-    plt.title("ME L2 u")
+    plt.title("Mean L2 u")
     
     plt.figure(2)
-    plt.title("ME L2 v")
+    plt.title("Mean L2 v")
     
     plt.figure(3)
-    plt.title("ME L2 p")
+    plt.title("Mean L2 p")
     
     for model in models:
-        if model in dirSkip or "100k" in model.split("@")[-1] or "300k" in model.split("@")[-1] or "300k" in model.split("@")[-2]:
+        if model in dirSkip or "100k" in model.split("@")[-1] or "300k" in model.split("@")[-1]: #or "300k" in model.split("@")[-2]
         # if model in dirSkip or "100k" in model.split("@")[-1] or "300k" in model.split("@")[-1]:
         # if model in dirSkip:
             # print("skipping ", model)
             continue
-        # print("reading ", model)
+        print("reading ", model)
         
         log_dir = outputsPath + model
 
@@ -96,7 +97,7 @@ with open(resultsFilePath, "w") as resultsFile:
         modelStrSplit = model.split("@")
                 
         if len(modelStrSplit) == 3:
-            label = shortNameDict[modelStrSplit[0]] + "@" + modelStrSplit[1].split("k")[0] + "k" + shortNameDict[modelStrSplit[1].split("k")[-1]] #+ "@" + modelStrSplit[-1]
+            label = shortNameDict[modelStrSplit[0]] + ", $S_d=$" + modelStrSplit[1].split("k")[0] + "k" #+ shortNameDict[modelStrSplit[1].split("k")[-1]] #+ "@" + modelStrSplit[-1]
         elif len(modelStrSplit) == 2:
             label = shortNameDict[modelStrSplit[0]] #+ "@" + modelStrSplit[-1]
         
@@ -113,9 +114,9 @@ with open(resultsFilePath, "w") as resultsFile:
     for i in range(1,4):
         plt.figure(i)
         plt.legend()
-        # plt.yscale("log")
+        plt.yscale("log")
         plt.xlabel("step")
-        plt.ylabel("ME L2")
+        plt.ylabel("Mean L2")
     
     plt.figure(1)    
     plt.savefig("L2u" + ".png", dpi = 600)

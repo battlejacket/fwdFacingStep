@@ -101,7 +101,7 @@ xu=np.array([0.95,float(param_ranges[Ho][1])])
 # xu=np.array([float(param_ranges[Lo][1]),float(param_ranges[Ho][1])])
 
 outputsPath="./outputs/fwdFacingStep_fl/"
-dirSkip = [".hydra", "init", "initFC"]
+dirSkip = [".hydra", "init", "initFC"] #, "data1800PlusPhysicsLambda1FC@500k", "data1800PlusPhysicsLambda01FC@500k", "dataOnly1800FC@500k", "physicsOnlyFC@500k"]
 
 # optResultsPath = "./optimizationResults/"
 optResultsPath = "./optimizationResults_fl/"
@@ -109,7 +109,7 @@ optResultsPath = "./optimizationResults_fl/"
 # models = ["data1800PlusPhysicsLambda01@500k"]
 models = listdir(outputsPath)
 models.sort()
-# models = ["data1800PlusPhysicsLambda1FC@500k", "data1800PlusPhysicsLambda01FC@500k"]
+models = ["physicsOnlyFC@500k"]
 
 print(models)
 
@@ -132,7 +132,7 @@ for model in models:
         
         problem = modulusOptProblem(n_var=2,n_obj=1, xl=xl, xu=xu, reNr=reNr, path=path)
 
-        algorithm = DE(pop_size=1000)
+        algorithm = DE(pop_size=200)
 
         termination = DefaultMultiObjectiveTermination(
             n_max_gen=1000, # default 1000
