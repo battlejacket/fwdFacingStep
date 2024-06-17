@@ -38,7 +38,7 @@ class modulusOptProblem(Problem):
             return np.array(last_row)
 
     def _evaluate(self, allDesigns, out, *args, **kwargs):
-        strat_time = time.time()
+        start_time = time.time()
         if self.maxDesignsPerEvaluation > allDesigns.shape[0]:
             batches = 1
         else:
@@ -50,10 +50,10 @@ class modulusOptProblem(Problem):
         print("Generation " + str(self.gen) + ": Evaluating " + str(allDesigns.shape[0]) + " Designs in " + str(batches) + " Batches")
         for designs in np.array_split(ary=allDesigns, indices_or_sections=batches):
             # run modulus
-            # with contextlib.redirect_stdout(io.StringIO()):
-            p = Process(target=ffs, args=(designs,self.reynoldsNr, self.configFileDir[2:], "config", True))
-            p.start()
-            p.join() 
+            with contextlib.redirect_stdout(io.StringIO()):
+                p = Process(target=ffs, args=(designs,self.reynoldsNr, self.configFileDir[2:], "config", True))
+                p.start()
+                p.join() 
             # read result files
             for design in enumerate(designs):
                 # read upstream pressure
@@ -91,30 +91,39 @@ class modulusOptProblem(Problem):
         # print(out["F"].shape)
         # print(out["F"])
         self.gen += 1
-        elapsed_time = time.time() - strat_time
+        elapsed_time = time.time() - start_time
         print("Evaluation time: ", elapsed_time)
 
-xl=np.array([0.25,float(param_ranges[Ho][0])])
-xu=np.array([0.95,float(param_ranges[Ho][1])])
+# xl=np.array([0.25,float(param_ranges[Ho][0])])
+# xu=np.array([0.95,float(param_ranges[Ho][1])])
 
-# xl=np.array([float(param_ranges[Lo][0]),float(param_ranges[Ho][0])])
-# xu=np.array([float(param_ranges[Lo][1]),float(param_ranges[Ho][1])])
+xl=np.array([float(param_ranges[Lo][0]),float(param_ranges[Ho][0])])
+xu=np.array([float(param_ranges[Lo][1]),float(param_ranges[Ho][1])])
 
 outputsPath="./outputs/fwdFacingStep_fl/"
-dirSkip = [".hydra", "init", "initFC"] #, "data1800PlusPhysicsLambda1FC@500k", "data1800PlusPhysicsLambda01FC@500k", "dataOnly1800FC@500k", "physicsOnlyFC@500k"]
+dirSkip = [".hydra", "init", "initFC", "data1800PlusPhysicsLambda1@500k", "dataOnly1800@500k"] #, "data1800PlusPhysicsLambda1FC@500k", "data1800PlusPhysicsLambda01FC@500k", "dataOnly1800FC@500k", "physicsOnlyFC@500k"]
 
 # optResultsPath = "./optimizationResults/"
 optResultsPath = "./optimizationResults_fl/"
 
+doneModels = listdir(optResultsPath)
+
+dirSkip += doneModels
+
 # models = ["data1800PlusPhysicsLambda01@500k"]
 models = listdir(outputsPath)
 models.sort()
-models = ["physicsOnlyFC@500k"]
+# models = ["physicsOnlyFC@500k", "physicsOnly@500k", "data1800PlusPhysicsLambda01@500k", ]
 
-print(models)
+print("model list")
+for model in models:
+    if model in dirSkip or "100k" in model.split("@")[-1] or "300k" in model.split("@")[-1]:
+        continue 
+    print(model)
+print("end model list")
 
 for model in models:
-    if model in dirSkip or "100k" in model.split("@")[-1] or "300k" in model.split("@")[-1] or 'FC' not in model:
+    if model in dirSkip or "100k" in model.split("@")[-1] or "300k" in model.split("@")[-1]:
     # if model in dirSkip:
         print("skipping ", model)
         continue
@@ -122,11 +131,15 @@ for model in models:
     path = outputsPath + model
     optPath = optResultsPath + model
     
-    for reNr in range (300, 1100, 100):
+    reRange = range (300, 1100, 100)
+    
+    for reNr in reRange:
 
         if os.path.exists(optPath + "/optResultsX" + str(reNr) + ".npy"):
             print("skipping ", optPath + " " + str(reNr))
             continue
+        
+        optStartTime = time.time()
         
         print("Optimizing: ", str(model) + " " + str(reNr))
         
@@ -145,7 +158,7 @@ for model in models:
         #     dill.dump(algorithm, f)
 
 
-        print("Optimization Done!")
+        print("Optimization Done in ", time.time() - optStartTime)
         print("Best Design Objective Value: ", results.F)
         print("Best Design Parameter Value: ", results.X)
 
