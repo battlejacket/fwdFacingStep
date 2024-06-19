@@ -17,7 +17,7 @@ dirSkip = [".hydra", "init", "vtp", "initFC"]
 models = listdir(outputsPath)
 models.sort()
 
-models = ["dataOnly1800FC@500k", "dataOnly1800@500k", "physicsOnlyFC@500k", "physicsOnly@500k"]
+# models = ["dataOnly1800FC@500k", "dataOnly1800@500k", "physicsOnlyFC@500k", "physicsOnly@500k"]
 # models = ["data1800PlusPhysicsLambda1FC@500k", "data1800PlusPhysicsLambda1@500k", "data1800PlusPhysicsLambda01FC@500k", "data1800PlusPhysicsLambda01@500k"]
 # models += ["data1800PlusPhysicsLambda1@100k2pO@500k", "data1800PlusPhysicsLambda01@100k2pO@500k"]
 # models += ["pressureDataPlusPhysicsLambda1FC@500k", "pressureDataPlusPhysicsLambda1@500k"]
@@ -38,7 +38,7 @@ with open(resultsFilePath, "w") as resultsFile:
     plt.title("MAE $\Delta C_p$")
     
     for model in models:
-        if model in dirSkip or "100k" in model.split("@")[-1] or "300k" in model.split("@")[-1]:
+        if model in dirSkip or "100k" in model.split("@")[-1] or "300k" in model.split("@")[-1] or ('FC' not in model) or '300k' in model.split("@")[-2]:
         # if model in dirSkip or "100k" in model.split("@")[-1] or "300k" in model.split("@")[-1]:
         # if model in dirSkip:
             # print("skipping ", model)
@@ -139,6 +139,9 @@ with open(resultsFilePath, "w") as resultsFile:
             label = shortNameDict[modelStrSplit[0]] + ", $S_d=$" + modelStrSplit[1].split("k")[0] + "k" #+ shortNameDict[modelStrSplit[1].split("k")[-1]] #+ "@" + modelStrSplit[-1]
         elif len(modelStrSplit) == 2:
             label = shortNameDict[modelStrSplit[0]] #+ "@" + modelStrSplit[-1]
+        
+        label = label.replace('Fully Connected, ', '').replace('Fourier, ', '')
+        
         
         plt.figure(1)
         plt.plot(steps, meanUSP, label=label)
