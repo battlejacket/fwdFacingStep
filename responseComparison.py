@@ -66,8 +66,8 @@ def evaluate(designs, path, reynoldsNr) :
     return np.array(returnVal)
     
     
-outputsPath="./outputs/fwdFacingStep/"
-dirSkip = [".hydra", "init"]
+outputsPath="./outputs/fwdFacingStep_fl/"
+dirSkip = [".hydra", "init", "initFC"]
 
 resultsDir = "./responseResults/"
 
@@ -79,7 +79,7 @@ models = listdir(outputsPath)
 models.sort()
 
 # models = ["physicsOnlyFC@500k", "physicsOnly@500k", "dataOnly1800FC@500k", "dataOnly1800@500k"]
-models = ["data1800PlusPhysicsLambda1FC@500k", "data1800PlusPhysicsLambda1@500k", "data1800PlusPhysicsLambda01FC@500k", "data1800PlusPhysicsLambda01@500k"]
+# models = ["data1800PlusPhysicsLambda1FC@500k", "data1800PlusPhysicsLambda1@500k", "data1800PlusPhysicsLambda01FC@500k", "data1800PlusPhysicsLambda01@500k"]
 
 
 for model in models:

@@ -94,18 +94,18 @@ class modulusOptProblem(Problem):
         elapsed_time = time.time() - start_time
         print("Evaluation time: ", elapsed_time)
 
-xl=np.array([0.25,float(param_ranges[Ho][0])])
-xu=np.array([0.95,float(param_ranges[Ho][1])])
+# xl=np.array([0.25,float(param_ranges[Ho][0])])
+# xu=np.array([0.95,float(param_ranges[Ho][1])])
 
-# xl=np.array([float(param_ranges[Lo][0]),float(param_ranges[Ho][0])])
-# xu=np.array([float(param_ranges[Lo][1]),float(param_ranges[Ho][1])])
+xl=np.array([float(param_ranges[Lo][0]),float(param_ranges[Ho][0])])
+xu=np.array([float(param_ranges[Lo][1]),float(param_ranges[Ho][1])])
 
 outputsPath="./outputs/fwdFacingStep_fl/"
 dirSkip = [".hydra", "init", "initFC"] #, "data1800PlusPhysicsLambda1FC@500k", "data1800PlusPhysicsLambda01FC@500k", "dataOnly1800FC@500k", "physicsOnlyFC@500k"]
 
 # optResultsPath = "./optimizationResults/"
-# optResultsPath = "./optimizationResults_fl/"
-optResultsPath = "./optimizationResultsReducedRange_fl/"
+optResultsPath = "./optimizationResults_fl/"
+# optResultsPath = "./optimizationResultsReducedRange_fl/"
 
 doneModels = listdir(optResultsPath)
 
@@ -114,7 +114,7 @@ dirSkip += doneModels
 # models = ["data1800PlusPhysicsLambda01@500k"]
 models = listdir(outputsPath)
 models.sort()
-models = ["physicsOnly@500k", "data1800PlusPhysicsLambda01@500k", ]
+# models = ["physicsOnly@500k", "data1800PlusPhysicsLambda01@500k", ]
 
 print("model list")
 for model in models:

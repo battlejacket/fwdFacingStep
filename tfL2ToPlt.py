@@ -9,18 +9,19 @@ from shortNames import shortNameDict
 
 
 resultsFilePath="./resultsL2.csv"
-outputsPath="./outputs/fwdFacingStep/"
+outputsPath="./outputs/fwdFacingStep_fl/"
 validatorSkip = ["DP5","DP36","DP79","DP86"] # skip data points
 # validatorSkip = [] # skip data points
 dirSkip = [".hydra", "init", "vtp", "initFC"]
 
-models = listdir(outputsPath)
-models.sort()
+# models = listdir(outputsPath)
+# models.sort()
 
-# models = ["dataOnly1800FC@500k", "dataOnly1800@500k", "physicsOnlyFC@500k", "physicsOnly@500k"]
-# models = ["data1800PlusPhysicsLambda1FC@500k", "data1800PlusPhysicsLambda1@500k", "data1800PlusPhysicsLambda01FC@500k", "data1800PlusPhysicsLambda01@500k"]
-# models += ["data1800PlusPhysicsLambda1@100k2pO@500k", "data1800PlusPhysicsLambda01@100k2pO@500k"]
-# models += ["pressureDataPlusPhysicsLambda1FC@500k", "pressureDataPlusPhysicsLambda1@500k"]
+# models = ["physicsOnly@500k", "dataOnly1800@500k", "data1800PlusPhysicsLambda01@500k", "data1800PlusPhysicsLambda1@500k", "pressureDataPlusPhysicsLambda01@500k", "pressureDataPlusPhysicsLambda1@500k",
+# "data1800PlusPhysicsLambda01@100k2pO@500k", "data1800PlusPhysicsLambda1@100k2pO@500k"]
+
+models = ["physicsOnlyFC@500k", "dataOnly1800FC@500k", "data1800PlusPhysicsLambda01FC@500k", "data1800PlusPhysicsLambda1FC@500k", "pressureDataPlusPhysicsLambda01FC@500k", "pressureDataPlusPhysicsLambda1FC@500k"]
+
 
 with open(resultsFilePath, "w") as resultsFile:
     writer = csv.writer(resultsFile, delimiter=",")
@@ -29,16 +30,16 @@ with open(resultsFilePath, "w") as resultsFile:
     writer.writerow(firstRow)
     
     plt.figure(1)
-    plt.title("Mean L2 u")
+    plt.title("Validation Error $u$")
     
     plt.figure(2)
-    plt.title("Mean L2 v")
+    plt.title("Validation Error $v$")
     
     plt.figure(3)
-    plt.title("Mean L2 p")
+    plt.title("Validation Error $p$")
     
     for model in models:
-        if model in dirSkip or "100k" in model.split("@")[-1] or "300k" in model.split("@")[-1] or 'FC' in model or '300k' in model.split("@")[-2]:
+        if model in dirSkip or "100k" in model.split("@")[-1] or "300k" in model.split("@")[-1] or 'FC' not in model or '300k' in model.split("@")[-2]:
         # if model in dirSkip or "100k" in model.split("@")[-1] or "300k" in model.split("@")[-1]:
         # if model in dirSkip:
             # print("skipping ", model)
@@ -64,16 +65,13 @@ with open(resultsFilePath, "w") as resultsFile:
                 values = []
                 steps = []
                 events = ea.Tensors(tag)
-                pStep = -1
+
                 for event in events:
-                    # print(event)
                     step = event.step
-                    if not step == pStep:
-                        # print(step)
+                    if step not in steps:
                         value = event.tensor_proto.float_val[0]
                         values.append(value)
                         steps.append(step)
-                    pStep = step
 
                 if n == 0:
                     meanL2u = np.zeros(len(values))
@@ -117,12 +115,14 @@ with open(resultsFilePath, "w") as resultsFile:
         plt.figure(i)
         plt.legend()
         plt.yscale("log")
-        plt.xlabel("step")
-        plt.ylabel("Mean L2")
+        plt.xlabel("Step")
+        plt.ylabel("Mean $L^2$ Error")
+        
+    pre= 'FC_'
     
     plt.figure(1)    
-    plt.savefig("L2u" + ".png", dpi = 600)
+    plt.savefig(pre + "L2u" + ".png", dpi = 600, bbox_inches='tight')
     plt.figure(2)    
-    plt.savefig("L2v" + ".png", dpi = 600)
+    plt.savefig(pre + "L2v" + ".png", dpi = 600, bbox_inches='tight')
     plt.figure(3)    
-    plt.savefig("L2p" + ".png", dpi = 600)
+    plt.savefig(pre + "L2p" + ".png", dpi = 600, bbox_inches='tight')
