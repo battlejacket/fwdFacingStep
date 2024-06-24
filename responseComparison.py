@@ -3,7 +3,7 @@ import dill
 import os, glob, io, time
 from os import listdir
 import csv
-from fwdFacingStep import ffs #, param_ranges, Re, Ho, Lo
+from fwdFacingStep_fl import ffs #, param_ranges, Re, Ho, Lo
 from pymoo.optimize import minimize
 from pymoo.core.problem import Problem
 from pymoo.algorithms.moo.nsga2 import NSGA2
@@ -92,8 +92,9 @@ for model in models:
     resultsPath = resultsDir + model
     
     for reNr in [500, 800]:
+    # for reNr in [500, 800]:
         for HoV in [0.35, 0.4, 0.45]:
-        # for HoV in [0.2, 0.3, 0.4]:
+        # for HoV in [0.35, 0.4, 0.45]:
             
             Ho = np.full_like(Lo, HoV)
 
