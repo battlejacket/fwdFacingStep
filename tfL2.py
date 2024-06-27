@@ -5,14 +5,18 @@ from os import listdir
 from shortNames import name2data #shortNameDict
 
 resultsFilePath="./resultsL2.csv"
-outputsPath="./outputs/fwdFacingStep/"
+outputsPath="./outputs/fwdFacingStep_fl/"
 validatorSkip = ["DP5","DP36","DP79","DP86"] # skip data points
 dirSkip = [".hydra", "init", "initFC", "vtp"]
 
-models = listdir(outputsPath)
-models.sort()
+# models = listdir(outputsPath)
+# models.sort()
 
-# models = ["physicsOnlynwlnshr@500k", "physicsOnlyFCnwlnshr@500k", "physicsOnly@500k", "physicsOnlyFC@500k"]
+models = ["physicsOnlyFC@500k", "dataOnly1800FC@500k", "data1800PlusPhysicsLambda01FC@500k", "data1800PlusPhysicsLambda1FC@500k", "pressureDataPlusPhysicsLambda01FC@500k", "pressureDataPlusPhysicsLambda1FC@500k"]
+
+models += ["physicsOnly@500k", "dataOnly1800@500k", "data1800PlusPhysicsLambda01@500k", "data1800PlusPhysicsLambda1@500k", "pressureDataPlusPhysicsLambda01@500k", "pressureDataPlusPhysicsLambda1@500k",
+"data1800PlusPhysicsLambda01@100k2pO@500k", "data1800PlusPhysicsLambda1@100k2pO@500k"]
+
 
 with open(resultsFilePath, "w") as resultsFile:
     writer = csv.writer(resultsFile, delimiter=",")
@@ -105,7 +109,7 @@ with open(resultsFilePath, "w") as resultsFile:
     dataSorted = data
 
 
-    print(data)
+    # print(data)
     
     for row in dataSorted:
         

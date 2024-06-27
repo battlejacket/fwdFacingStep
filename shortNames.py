@@ -35,18 +35,18 @@ shortNameDict = {
 def name2data(name):
     data = {}
     if 'FC' in name:
-        data['arch'] = 'FC'
+        data['arch'] = 'Fully Connected'
     else:
-        data['arch'] = 'F'
+        data['arch'] = 'Fourier'
         
     if 'physicsOnly' in name:
-        data['train'] = 'P'
+        data['train'] = 'Physics'
     elif 'dataOnly' in name:
-        data['train'] = 'D'
+        data['train'] = 'Data'
     elif 'pressureData' in name and 'PlusPhysics' in name:
-        data['train'] = 'PD+P'
+        data['train'] = 'Pressure Data+Physics'
     elif 'data' in name and 'PlusPhysics' in name:
-        data['train'] = 'D+P'
+        data['train'] = 'Data+Physics'
         
     if 'Lambda1' in name:
         data['Wd'] = '1'
