@@ -1,6 +1,6 @@
 import os
 from multiprocessing import Process
-from fwdFacingStep_fl import ffs
+from fwdFacingStep import ffs
 import shutil
 
 valueList = [
@@ -32,10 +32,10 @@ valueList = [
     # {"useData": False, "usePhysics": True, "network_dir": "physicsOnly", "max_steps": 300000},
     # {"useData": False, "usePhysics": True, "network_dir": "physicsOnly", "max_steps": 500000},
     
-    # # data1800PlusPhysicsLambda01 (est 32h)
-    # {"useData": True, "usePhysics": True, "batchesData": 1800, "network_dir": "data1800PlusPhysicsLambda01", "max_steps": 100000},
-    # {"useData": True, "usePhysics": True, "batchesData": 1800, "network_dir": "data1800PlusPhysicsLambda01", "max_steps": 300000},
-    # {"useData": True, "usePhysics": True, "batchesData": 1800, "network_dir": "data1800PlusPhysicsLambda01", "max_steps": 500000},
+    # data1800PlusPhysicsLambda01 (est 32h)
+    {"useData": True, "usePhysics": True, "batchesData": 1800, "network_dir": "data1800PlusPhysicsLambda01_extraFreq", "max_steps": 100000},
+    {"useData": True, "usePhysics": True, "batchesData": 1800, "network_dir": "data1800PlusPhysicsLambda01_extraFreq", "max_steps": 300000},
+    {"useData": True, "usePhysics": True, "batchesData": 1800, "network_dir": "data1800PlusPhysicsLambda01_extraFreq", "max_steps": 500000},
     # # data1800PlusPhysicsLambda1 (est 32h)
     # {"useData": True, "usePhysics": True, "batchesData": 1800, "lambda_p_d": 1, "lambda_u_d": 1, "lambda_v_d": 1, "network_dir": "data1800PlusPhysicsLambda1", "max_steps": 100000},
     # {"useData": True, "usePhysics": True, "batchesData": 1800, "lambda_p_d": 1, "lambda_u_d": 1, "lambda_v_d": 1, "network_dir": "data1800PlusPhysicsLambda1", "max_steps": 300000},
@@ -75,14 +75,14 @@ valueList = [
     # {"useData": False, "usePhysics": True, "network_dir": "data1800PlusPhysicsLambda01@100k2pO", "max_steps": 500000},
     
     # data1800PlusPhysicsLambda1FC@100k2pO
-    {"useData": False, "usePhysics": True, "netArch": "FC", "initialization_network_dir": "initFC", "network_dir": "data1800PlusPhysicsLambda1FC@100k2pO", "max_steps": 300000},
-    {"useData": False, "usePhysics": True, "netArch": "FC", "initialization_network_dir": "initFC", "network_dir": "data1800PlusPhysicsLambda1FC@100k2pO", "max_steps": 500000},
+    # {"useData": False, "usePhysics": True, "netArch": "FC", "initialization_network_dir": "initFC", "network_dir": "data1800PlusPhysicsLambda1FC@100k2pO", "max_steps": 300000},
+    # {"useData": False, "usePhysics": True, "netArch": "FC", "initialization_network_dir": "initFC", "network_dir": "data1800PlusPhysicsLambda1FC@100k2pO", "max_steps": 500000},
     
 ]
 
 baseConfigDir = "./conf/"
 baseConfigFilePath = baseConfigDir + "config.yaml"
-baseNetworkDir= "./outputs/fwdFacingStep_fl/"
+baseNetworkDir= "./outputs/fwdFacingStep/"
 prevNetworkDir = ""
 
 #loop over values (configurations to run) in value list

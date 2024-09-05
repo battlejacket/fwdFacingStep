@@ -3,7 +3,7 @@
 #     # "data1800PlusPhysicsLambda1": "D+P_L1",
 #     "data1800PlusPhysicsLambda01": "F D+P $W_d=0.1$",
 #     # "data1800PlusPhysicsLambda01": "D+P_L0.1",
-#     "dataOnly1800": "Fourier D",
+#     "dataOnly1800": "FNN D",
 #     "dataOnly1800FC": "FC D",
 #     "physicsOnly": "F P",
 #     "physicsOnlyFC": "FC P",
@@ -17,27 +17,27 @@
 # }
 
 shortNameDict = {
-    "data1800PlusPhysicsLambda1": "Fourier, Data+Physics, $W_d=1$",
-    "data1800PlusPhysicsLambda01": "Fourier, Data+Physics, $W_d=0.1$",
-    "dataOnly1800": "Fourier, Data",
-    "dataOnly1800FC": "Fully Connected, Data",
-    "physicsOnly": "Fourier, Physics",
-    "physicsOnlyFC": "Fully Connected, Physics",
-    "pressureDataPlusPhysicsLambda1": "Fourier, Pressure Data+Physics, $W_d=1$",
-    "pressureDataPlusPhysicsLambda01": "Fourier, Pressure Data+Physics, $W_d=0.1$",
-    "pressureDataPlusPhysicsLambda1FC": "Fully Connected, Pressure Data+Physics, $W_d=1$",
-    "pressureDataPlusPhysicsLambda01FC": "Fully Connected, Pressure Data+Physics, $W_d=0.1$",
-    "data1800PlusPhysicsLambda1FC" : "Fully Connected, Data+Physics, $W_d=1$",
-    "data1800PlusPhysicsLambda01FC" : "Fully Connected, Data+Physics, $W_d=0.1$",
+    "data1800PlusPhysicsLambda1": "FNN, Data+Physics, $W_d=1$",
+    "data1800PlusPhysicsLambda01": "FNN, Data+Physics, $W_d=0.1$",
+    "dataOnly1800": "FNN, Data",
+    "dataOnly1800FC": "FCNN, Data",
+    "physicsOnly": "FNN, Physics",
+    "physicsOnlyFC": "FCNN, Physics",
+    "pressureDataPlusPhysicsLambda1": "FNN, Pressure Data+Physics, $W_d=1$",
+    "pressureDataPlusPhysicsLambda01": "FNN, Pressure Data+Physics, $W_d=0.1$",
+    "pressureDataPlusPhysicsLambda1FC": "FCNN, Pressure Data+Physics, $W_d=1$",
+    "pressureDataPlusPhysicsLambda01FC": "FCNN, Pressure Data+Physics, $W_d=0.1$",
+    "data1800PlusPhysicsLambda1FC" : "FCNN, Data+Physics, $W_d=1$",
+    "data1800PlusPhysicsLambda01FC" : "FCNN, Data+Physics, $W_d=0.1$",
     "2pO": " > Physics "
 }
 
 def name2data(name):
     data = {}
     if 'FC' in name:
-        data['arch'] = 'Fully Connected'
+        data['arch'] = 'FCNN'
     else:
-        data['arch'] = 'Fourier'
+        data['arch'] = 'FNN'
         
     if 'physicsOnly' in name:
         data['train'] = 'Physics'

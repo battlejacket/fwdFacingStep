@@ -3,7 +3,7 @@ import dill
 import os, glob, io, time
 from os import listdir
 import csv
-from fwdFacingStep_fl import ffs, param_ranges, Re, Ho, Lo
+from fwdFacingStep import ffs, param_ranges, Re, Ho, Lo
 from pymoo.optimize import minimize
 from pymoo.core.problem import Problem
 from pymoo.algorithms.moo.nsga2 import NSGA2
@@ -100,12 +100,11 @@ class modulusOptProblem(Problem):
 xl=np.array([float(param_ranges[Lo][0]),float(param_ranges[Ho][0])])
 xu=np.array([float(param_ranges[Lo][1]),float(param_ranges[Ho][1])])
 
-outputsPath="./outputs/fwdFacingStep_fl/"
+outputsPath="./outputs/fwdFacingStep/"
 dirSkip = [".hydra", "init", "initFC"] #, "data1800PlusPhysicsLambda1FC@500k", "data1800PlusPhysicsLambda01FC@500k", "dataOnly1800FC@500k", "physicsOnlyFC@500k"]
 
-# optResultsPath = "./optimizationResults/"
-optResultsPath = "./optimizationResults_fl/"
-# optResultsPath = "./optimizationResultsReducedRange_fl/"
+optResultsPath = "./optimizationResults/"
+# optResultsPath = "./optimizationResultsReducedRange/"
 
 doneModels = listdir(optResultsPath)
 

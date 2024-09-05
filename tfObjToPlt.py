@@ -9,7 +9,7 @@ from shortNames import shortNameDict
 
 
 resultsFilePath="./resultsL2.csv"
-outputsPath="./outputs/fwdFacingStep_fl/"
+outputsPath="./outputs/fwdFacingStep/"
 validatorSkip = ["DP5","DP36","DP79","DP86"] # skip data points
 # validatorSkip = [] # skip data points
 dirSkip = [".hydra", "init", "vtp", "initFC"]
@@ -17,9 +17,9 @@ dirSkip = [".hydra", "init", "vtp", "initFC"]
 models = listdir(outputsPath)
 models.sort()
 
-# models = ["physicsOnly@500k", "dataOnly1800@500k", "data1800PlusPhysicsLambda01@500k", "data1800PlusPhysicsLambda1@500k", "pressureDataPlusPhysicsLambda01@500k", "pressureDataPlusPhysicsLambda1@500k","data1800PlusPhysicsLambda01@100k2pO@500k", "data1800PlusPhysicsLambda1@100k2pO@500k"]
+models = ["physicsOnly@500k", "dataOnly1800@500k", "data1800PlusPhysicsLambda01@500k", "data1800PlusPhysicsLambda1@500k", "pressureDataPlusPhysicsLambda01@500k", "pressureDataPlusPhysicsLambda1@500k","data1800PlusPhysicsLambda01@100k2pO@500k", "data1800PlusPhysicsLambda1@100k2pO@500k"]
 
-models = ["physicsOnlyFC@500k", "dataOnly1800FC@500k", "data1800PlusPhysicsLambda01FC@500k", "data1800PlusPhysicsLambda1FC@500k", "pressureDataPlusPhysicsLambda01FC@500k", "pressureDataPlusPhysicsLambda1FC@500k"]
+# models = ["physicsOnlyFC@500k", "dataOnly1800FC@500k", "data1800PlusPhysicsLambda01FC@500k", "data1800PlusPhysicsLambda1FC@500k", "pressureDataPlusPhysicsLambda01FC@500k", "pressureDataPlusPhysicsLambda1FC@500k"]
 
 
 with open(resultsFilePath, "w") as resultsFile:
@@ -35,10 +35,12 @@ with open(resultsFilePath, "w") as resultsFile:
     plt.title("Validation Error $p_1$")
     
     plt.figure(3)
-    plt.title("Validation Error $\Delta C_p$")
+    # plt.title("Validation Error $\Delta C_p$")
+    plt.title("Fourier NN")
+    # plt.title("Fully Connected NN")
     
     for model in models:
-        if model in dirSkip or "100k" in model.split("@")[-1] or "300k" in model.split("@")[-1] or ('FC' not in model) or '300k' in model.split("@")[-2]:
+        if model in dirSkip or "100k" in model.split("@")[-1] or "300k" in model.split("@")[-1] or '300k' in model.split("@")[-2]:
         # if model in dirSkip or "100k" in model.split("@")[-1] or "300k" in model.split("@")[-1]:
         # if model in dirSkip:
             # print("skipping ", model)
@@ -93,8 +95,9 @@ with open(resultsFilePath, "w") as resultsFile:
         meanDCp = np.zeros(l)
         
         for key in USP.keys():
-            # print(key + ": ",trueUSP[key])
+            # print(key + ": ",trueUSPd[key])
             npUSP = np.array(USP[key])
+            # print('npUSP' + ": ",npUSP)
             trueUSP = float(trueUSPd[key])
             npUSPError = np.abs(npUSP - trueUSP)
             
@@ -127,7 +130,7 @@ with open(resultsFilePath, "w") as resultsFile:
         
         label = label.replace('Fully Connected, ', '').replace('Fourier, ', '')
         
-        
+        steps = np.array(steps)/1000
         plt.figure(1)
         plt.plot(steps, meanUSP, label=label)
         plt.figure(2)
@@ -137,12 +140,17 @@ with open(resultsFilePath, "w") as resultsFile:
     
     for i in range(1,4):
         plt.figure(i)
-        plt.legend()
+        # plt.legend()
         plt.yscale("log")
-        plt.xlabel("Step")
+        plt.xlabel("Step ($x10^3$)")
+        # plt.xlabel("Step")
         plt.ylabel("MAE $\Delta C_p$")
+        plt.ylim(0.015, 10)
+        
     
-    pre = 'FC_'
+    # pre = 'TEST_'
+    pre = 'F_'
+    # pre = 'FC_'
     
     plt.figure(1)    
     plt.savefig(pre + "MaeDSP" + ".png", dpi = 600, bbox_inches='tight')

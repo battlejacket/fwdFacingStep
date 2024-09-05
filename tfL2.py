@@ -5,7 +5,7 @@ from os import listdir
 from shortNames import name2data #shortNameDict
 
 resultsFilePath="./resultsL2.csv"
-outputsPath="./outputs/fwdFacingStep_fl/"
+outputsPath="./outputs/fwdFacingStep/"
 validatorSkip = ["DP5","DP36","DP79","DP86"] # skip data points
 dirSkip = [".hydra", "init", "initFC", "vtp"]
 
@@ -25,6 +25,13 @@ with open(resultsFilePath, "w") as resultsFile:
     # firstRow = ["model", "u mean", "u min", "u max", "v mean", "v min", "v max", "p mean", "p min", "p max"]
     writer.writerow(firstRow)
     data = []
+    uMaxInst = {}
+    vMaxInst = {}
+    pMaxInst = {}
+    
+    uMinInst = {}
+    vMinInst = {}
+    pMinInst = {}
     
     for model in models:
         if model in dirSkip or "100k" in model.split("@")[-1] or "300k" in model.split("@")[-1]:
@@ -100,12 +107,47 @@ with open(resultsFilePath, "w") as resultsFile:
         # row = [label, meanDSP, minDSP, maxDSP, meanUSP, minUSP, maxUSP, meanDCp, minDCp, maxDCp]
         row = [modelData['train'], modelData['Wd'], modelData['2PStep'], modelData['arch'], l2uMean, l2uStd, l2vMean, l2vStd, l2pMean, l2pStd]
         
+        if l2uMax[0] in uMaxInst.keys():
+            uMaxInst[l2uMax[0]] +=1
+        else:
+            uMaxInst[l2uMax[0]] = 1
+            
+        if l2vMax[0] in vMaxInst.keys():
+            vMaxInst[l2vMax[0]] +=1
+        else:
+            vMaxInst[l2vMax[0]] = 1
+            
+        if l2pMax[0] in pMaxInst.keys():
+            pMaxInst[l2pMax[0]] +=1
+        else:
+            pMaxInst[l2pMax[0]] = 1
+            
+        if l2uMin[0] in uMinInst.keys():
+            uMinInst[l2uMin[0]] +=1
+        else:
+            uMinInst[l2uMin[0]] = 1
+            
+        if l2vMin[0] in vMinInst.keys():
+            vMinInst[l2vMin[0]] +=1
+        else:
+            vMinInst[l2vMin[0]] = 1
+            
+        if l2pMin[0] in pMinInst.keys():
+            pMinInst[l2pMin[0]] +=1
+        else:
+            pMinInst[l2pMin[0]] = 1
         
         data.append(row)
-        
-    # popsorted=pop[pop[:, -1].argsort()]
 
-    # dataSorted = data[data[:,0].argsort()]
+
+    print('uMax: ', uMaxInst)
+    print('vMax: ', vMaxInst)
+    print('pMax: ', pMaxInst)
+    
+    print('uMin: ', uMinInst)
+    print('vMin: ', vMinInst)
+    print('pMin: ', pMinInst)
+    
     dataSorted = data
 
 
