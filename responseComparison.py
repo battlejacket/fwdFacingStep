@@ -74,12 +74,12 @@ resultsDir = "./responseResults/"
 Lo = np.arange(0.2, 1.05, 0.0125)
 # Lo = np.arange(0.1, 0.5, 0.0125)
 
-# models = ["data1800PlusPhysicsLambda01@500k"]
-models = listdir(outputsPath)
-models.sort()
+# models = listdir(outputsPath)
+# models.sort()
 
-# models = ["physicsOnlyFC@500k", "physicsOnly@500k", "dataOnly1800FC@500k", "dataOnly1800@500k"]
+models = ["physicsOnlyFC@500k", "physicsOnly@500k", "dataOnly1800FC@500k", "dataOnly1800@500k"]
 # models = ["data1800PlusPhysicsLambda1FC@500k", "data1800PlusPhysicsLambda1@500k", "data1800PlusPhysicsLambda01FC@500k", "data1800PlusPhysicsLambda01@500k"]
+# models = ["data1800PlusPhysicsLambda01_extraFreq@500k"]
 
 
 for model in models:

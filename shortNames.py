@@ -29,7 +29,8 @@ shortNameDict = {
     "pressureDataPlusPhysicsLambda01FC": "FCNN, Pressure Data+Physics, $W_d=0.1$",
     "data1800PlusPhysicsLambda1FC" : "FCNN, Data+Physics, $W_d=1$",
     "data1800PlusPhysicsLambda01FC" : "FCNN, Data+Physics, $W_d=0.1$",
-    "2pO": " > Physics "
+    "2pO": " > Physics ",
+    "data1800PlusPhysicsLambda01_extraFreq" : "FNN(extraFreq), Data+Physics, $W_d=0.1$"
 }
 
 def name2data(name):
