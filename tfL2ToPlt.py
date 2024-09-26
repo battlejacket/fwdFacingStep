@@ -17,11 +17,12 @@ dirSkip = [".hydra", "init", "vtp", "initFC"]
 # models = listdir(outputsPath)
 # models.sort()
 
-models = ["physicsOnly@500k", "dataOnly1800@500k", "data1800PlusPhysicsLambda01@500k", "data1800PlusPhysicsLambda1@500k", "pressureDataPlusPhysicsLambda01@500k", "pressureDataPlusPhysicsLambda1@500k",
-"data1800PlusPhysicsLambda01@100k2pO@500k", "data1800PlusPhysicsLambda1@100k2pO@500k"]
+# models = ["physicsOnly@500k", "dataOnly1800@500k", "data1800PlusPhysicsLambda01@500k", "data1800PlusPhysicsLambda1@500k", "pressureDataPlusPhysicsLambda01@500k", "pressureDataPlusPhysicsLambda1@500k",
+# "data1800PlusPhysicsLambda01@100k2pO@500k", "data1800PlusPhysicsLambda1@100k2pO@500k"]
 
 
-# models = ["physicsOnlyFC@500k", "dataOnly1800FC@500k", "data1800PlusPhysicsLambda01FC@500k", "data1800PlusPhysicsLambda1FC@500k", "pressureDataPlusPhysicsLambda01FC@500k", "pressureDataPlusPhysicsLambda1FC@500k"] #, "data1800PlusPhysicsLambda1FC@100k2pO@500k"]
+models = ["physicsOnlyFC@500k", "dataOnly1800FC@500k", "data1800PlusPhysicsLambda01FC@500k", "data1800PlusPhysicsLambda1FC@500k",
+"pressureDataPlusPhysicsLambda01FC@500k", "pressureDataPlusPhysicsLambda1FC@500k"] #, "data1800PlusPhysicsLambda1FC@300k2pO@500k"]
 
 
 with open(resultsFilePath, "w") as resultsFile:
@@ -40,8 +41,8 @@ with open(resultsFilePath, "w") as resultsFile:
     plt.title("Validation Error $P$")
     
     for model in models:
-        if model in dirSkip or "100k" in model.split("@")[-1] or "300k" in model.split("@")[-1] or '300k' in model.split("@")[-2]:
-        # if model in dirSkip or "100k" in model.split("@")[-1] or "300k" in model.split("@")[-1]:
+        # if model in dirSkip or "100k" in model.split("@")[-1] or "300k" in model.split("@")[-1] or '300k' in model.split("@")[-2]:
+        if model in dirSkip or "100k" in model.split("@")[-1] or "300k" in model.split("@")[-1]:
         # if model in dirSkip:
             # print("skipping ", model)
             continue
@@ -115,17 +116,26 @@ with open(resultsFilePath, "w") as resultsFile:
     
     for i in range(1,4):
         plt.figure(i)
-        # plt.legend()
+        plt.legend()
         plt.yscale("log")
         plt.xlabel("Step ($x10^3$)")
         plt.ylabel("Mean $L^2$ Error")
         plt.ylim(0.003, 2)
         
-    pre= 'F_'
+    pre= 'FC_'
+    # pre= 'F_'
+    
+    
+    # plt.figure(1)    
+    # plt.savefig(pre + "L2u" + ".png", dpi = 600, bbox_inches='tight')
+    # plt.figure(2)    
+    # plt.savefig(pre + "L2v" + ".png", dpi = 600, bbox_inches='tight')
+    # plt.figure(3)    
+    # plt.savefig(pre + "L2p" + ".png", dpi = 600, bbox_inches='tight')
     
     plt.figure(1)    
-    plt.savefig(pre + "L2u" + ".png", dpi = 600, bbox_inches='tight')
+    plt.savefig(pre + "L2u" + ".svg", format='svg', dpi = 600, bbox_inches='tight')
     plt.figure(2)    
-    plt.savefig(pre + "L2v" + ".png", dpi = 600, bbox_inches='tight')
+    plt.savefig(pre + "L2v" + ".svg", format='svg', dpi = 600, bbox_inches='tight')
     plt.figure(3)    
-    plt.savefig(pre + "L2p" + ".png", dpi = 600, bbox_inches='tight')
+    plt.savefig(pre + "L2p" + ".svg", format='svg', dpi = 600, bbox_inches='tight')

@@ -147,13 +147,10 @@ with open(resultsFilePath, "w") as resultsFile:
     print('uMin: ', uMinInst)
     print('vMin: ', vMinInst)
     print('pMin: ', pMinInst)
-    
-    dataSorted = data
-
 
     # print(data)
     
-    for row in dataSorted:
+    for row in data:
         
         writer.writerow(row)
         # latexStr = label

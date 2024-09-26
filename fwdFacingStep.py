@@ -273,17 +273,12 @@ def ffs(designs=[], reynoldsNr=500, config_path="conf", config_name="config", op
             domain.add_constraint(interior, "interior")
             
             if cfg.custom.interiorUHR:
-                sizeUHR = [0.1, 0.1]
-                centreObstacleUHR = [-Lo+Wo/2, Ho]
-                centreStepUHR = [Wo/2, 0]
+                centreObstacleUHR = -Lo+Wo/2
                 
-                criteriaUHR = Or(
-                    And(GreaterThan(x, centreObstacleUHR[0] - sizeUHR[0]), LessThan(x, centreObstacleUHR[0] + sizeUHR[0]), GreaterThan(y, centreObstacleUHR[1] - sizeUHR[1]), LessThan(y, centreObstacleUHR[1] + sizeUHR[1])),
-                    And(GreaterThan(x, centreStepUHR[0] - sizeUHR[0]), LessThan(x, centreStepUHR[0] + sizeUHR[0]), GreaterThan(y, centreStepUHR[1] - sizeUHR[1]), LessThan(y, centreStepUHR[1] + sizeUHR[1]))
-                    )
+                criteriaUHR = And(GreaterThan(x,centreObstacleUHR), LessThan(x,0), GreaterThan(y, -0.1))
+                
                 criteriaHR = And(criteriaHR, Not(criteriaUHR))
                 
-                lambdaFactor = 0.1
                 
                 interiorUHR = PointwiseInteriorConstraint(
                     nodes=nodes,
@@ -291,9 +286,9 @@ def ffs(designs=[], reynoldsNr=500, config_path="conf", config_name="config", op
                     outvar={"continuity": 0, "momentum_x": 0, "momentum_y": 0},
                     batch_size=cfg.batch_size.InteriorUHR,
                     lambda_weighting={
-                        "continuity": lambdaFactor * lambdafunc,
-                        "momentum_x": lambdaFactor * lambdafunc,
-                        "momentum_y": lambdaFactor * lambdafunc,
+                        "continuity": lambdafunc,
+                        "momentum_x": lambdafunc,
+                        "momentum_y": lambdafunc,
                     },
                     criteria=criteriaUHR,
                     batch_per_epoch=cfg.batch_size.batchPerEpoch,

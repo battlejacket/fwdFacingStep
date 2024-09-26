@@ -40,8 +40,8 @@ with open(resultsFilePath, "w") as resultsFile:
     # plt.title("Fully Connected NN")
     
     for model in models:
-        if model in dirSkip or "100k" in model.split("@")[-1] or "300k" in model.split("@")[-1] or '300k' in model.split("@")[-2]:
-        # if model in dirSkip or "100k" in model.split("@")[-1] or "300k" in model.split("@")[-1]:
+        # if model in dirSkip or "100k" in model.split("@")[-1] or "300k" in model.split("@")[-1] or '300k' in model.split("@")[-2]:
+        if model in dirSkip or "100k" in model.split("@")[-1] or "300k" in model.split("@")[-1]:
         # if model in dirSkip:
             # print("skipping ", model)
             continue
@@ -140,7 +140,7 @@ with open(resultsFilePath, "w") as resultsFile:
     
     for i in range(1,4):
         plt.figure(i)
-        # plt.legend()
+        plt.legend()
         plt.yscale("log")
         plt.xlabel("Step ($x10^3$)")
         # plt.xlabel("Step")
@@ -152,9 +152,16 @@ with open(resultsFilePath, "w") as resultsFile:
     pre = 'F_'
     # pre = 'FC_'
     
+    # plt.figure(1)    
+    # plt.savefig(pre + "MaeDSP" + ".png", dpi = 600, bbox_inches='tight')
+    # plt.figure(2)    
+    # plt.savefig(pre + "MaeUSP" + ".png", dpi = 600, bbox_inches='tight')
+    # plt.figure(3)    
+    # plt.savefig(pre + "MaeDCp" + ".png", dpi = 600, bbox_inches='tight')
+    
     plt.figure(1)    
-    plt.savefig(pre + "MaeDSP" + ".png", dpi = 600, bbox_inches='tight')
+    plt.savefig(pre + "MaeDSP" + ".svg", format='svg', dpi = 600, bbox_inches='tight')
     plt.figure(2)    
-    plt.savefig(pre + "MaeUSP" + ".png", dpi = 600, bbox_inches='tight')
+    plt.savefig(pre + "MaeUSP" + ".svg", format='svg', dpi = 600, bbox_inches='tight')
     plt.figure(3)    
-    plt.savefig(pre + "MaeDCp" + ".png", dpi = 600, bbox_inches='tight')
+    plt.savefig(pre + "MaeDCp" + ".svg", format='svg', dpi = 600, bbox_inches='tight')
