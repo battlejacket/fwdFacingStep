@@ -7,6 +7,21 @@ import numpy as np
 import matplotlib.pyplot as plt
 from shortNames import shortNameDict
 
+from cycler import cycler
+wTot = 18 # cm
+wTot = wTot*2
+nSubFig = 2
+w = wTot/(nSubFig*2.54)
+h = w*0.75
+
+plt.rcParams['figure.figsize'] = [w, h]
+plt.rcParams['lines.linewidth'] = 1.5
+plt.rcParams['font.size'] = 10
+plt.rcParams['legend.fontsize'] = 12
+# plt.rcParams['figure.titlesize'] = 12
+
+linestyle_cycler = (cycler(linestyle=[(0, (5,0)), (0, (1,2)),(0, (4,2)),(0, (4,2,1,2)),(0, (4,2,1,2,1,2)),(0, (1,4)),(0, (8,3)),(0, (8,3,1,3)),(0, (8,3,1,3,1,3)),(0, (15,5))]) + cycler('color', ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf']))
+plt.rc('axes', prop_cycle=linestyle_cycler)
 
 resultsFilePath="./resultsL2.csv"
 outputsPath="./outputs/fwdFacingStep/"
@@ -17,9 +32,9 @@ dirSkip = [".hydra", "init", "vtp", "initFC"]
 models = listdir(outputsPath)
 models.sort()
 
-models = ["physicsOnly@500k", "dataOnly1800@500k", "data1800PlusPhysicsLambda01@500k", "data1800PlusPhysicsLambda1@500k", "pressureDataPlusPhysicsLambda01@500k", "pressureDataPlusPhysicsLambda1@500k","data1800PlusPhysicsLambda01@100k2pO@500k", "data1800PlusPhysicsLambda1@100k2pO@500k"]
+# models = ["physicsOnly@500k", "dataOnly1800@500k", "data1800PlusPhysicsLambda01@500k", "data1800PlusPhysicsLambda1@500k", "pressureDataPlusPhysicsLambda01@500k", "pressureDataPlusPhysicsLambda1@500k","data1800PlusPhysicsLambda01@100k2pO@500k", "data1800PlusPhysicsLambda1@100k2pO@500k"]
 
-# models = ["physicsOnlyFC@500k", "dataOnly1800FC@500k", "data1800PlusPhysicsLambda01FC@500k", "data1800PlusPhysicsLambda1FC@500k", "pressureDataPlusPhysicsLambda01FC@500k", "pressureDataPlusPhysicsLambda1FC@500k"]
+models = ["physicsOnlyFC@500k", "dataOnly1800FC@500k", "data1800PlusPhysicsLambda01FC@500k", "data1800PlusPhysicsLambda1FC@500k", "pressureDataPlusPhysicsLambda01FC@500k", "pressureDataPlusPhysicsLambda1FC@500k"]
 
 
 with open(resultsFilePath, "w") as resultsFile:
@@ -36,8 +51,8 @@ with open(resultsFilePath, "w") as resultsFile:
     
     plt.figure(3)
     # plt.title("Validation Error $\Delta C_p$")
-    plt.title("Fourier NN")
-    # plt.title("Fully Connected NN")
+    # plt.title("FNN")
+    plt.title("FCNN")
     
     for model in models:
         # if model in dirSkip or "100k" in model.split("@")[-1] or "300k" in model.split("@")[-1] or '300k' in model.split("@")[-2]:
@@ -140,7 +155,7 @@ with open(resultsFilePath, "w") as resultsFile:
     
     for i in range(1,4):
         plt.figure(i)
-        plt.legend()
+        # plt.legend()
         plt.yscale("log")
         plt.xlabel("Step ($x10^3$)")
         # plt.xlabel("Step")
@@ -149,8 +164,8 @@ with open(resultsFilePath, "w") as resultsFile:
         
     
     # pre = 'TEST_'
-    pre = 'F_'
-    # pre = 'FC_'
+    # pre = 'F_'
+    pre = 'FC_'
     
     # plt.figure(1)    
     # plt.savefig(pre + "MaeDSP" + ".png", dpi = 600, bbox_inches='tight')
@@ -159,9 +174,9 @@ with open(resultsFilePath, "w") as resultsFile:
     # plt.figure(3)    
     # plt.savefig(pre + "MaeDCp" + ".png", dpi = 600, bbox_inches='tight')
     
-    plt.figure(1)    
-    plt.savefig(pre + "MaeDSP" + ".svg", format='svg', dpi = 600, bbox_inches='tight')
-    plt.figure(2)    
-    plt.savefig(pre + "MaeUSP" + ".svg", format='svg', dpi = 600, bbox_inches='tight')
+    # plt.figure(1)    
+    # plt.savefig(pre + "MaeDSP" + ".eps", format='eps', dpi = 600, bbox_inches='tight')
+    # plt.figure(2)    
+    # plt.savefig(pre + "MaeUSP" + ".eps", format='eps', dpi = 600, bbox_inches='tight')
     plt.figure(3)    
-    plt.savefig(pre + "MaeDCp" + ".svg", format='svg', dpi = 600, bbox_inches='tight')
+    plt.savefig(pre + "MaeDCp" + ".eps", format='eps', dpi = 600, bbox_inches='tight')

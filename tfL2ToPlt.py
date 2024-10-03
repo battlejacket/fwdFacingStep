@@ -7,6 +7,22 @@ import numpy as np
 import matplotlib.pyplot as plt
 from shortNames import shortNameDict
 
+from cycler import cycler
+wTot = 18 # cm
+wTot = wTot*2
+nSubFig = 3
+w = wTot/(nSubFig*2.54)
+h = w*0.75
+
+plt.rcParams['figure.figsize'] = [w, h]
+plt.rcParams['lines.linewidth'] = 1.5
+plt.rcParams['font.size'] = 10
+plt.rcParams['legend.fontsize'] = 12
+# plt.rcParams['figure.titlesize'] = 12
+
+linestyle_cycler = (cycler(linestyle=[(0, (5,0)), (0, (1,2)),(0, (4,2)),(0, (4,2,1,2)),(0, (4,2,1,2,1,2)),(0, (1,4)),(0, (8,3)),(0, (8,3,1,3)),(0, (8,3,1,3,1,3)),(0, (15,5))]) + cycler('color', ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf']))
+plt.rc('axes', prop_cycle=linestyle_cycler)
+
 
 resultsFilePath="./resultsL2.csv"
 outputsPath="./outputs/fwdFacingStep/"
@@ -17,12 +33,14 @@ dirSkip = [".hydra", "init", "vtp", "initFC"]
 # models = listdir(outputsPath)
 # models.sort()
 
-# models = ["physicsOnly@500k", "dataOnly1800@500k", "data1800PlusPhysicsLambda01@500k", "data1800PlusPhysicsLambda1@500k", "pressureDataPlusPhysicsLambda01@500k", "pressureDataPlusPhysicsLambda1@500k",
-# "data1800PlusPhysicsLambda01@100k2pO@500k", "data1800PlusPhysicsLambda1@100k2pO@500k"]
+models = ["physicsOnly@500k", "dataOnly1800@500k", "data1800PlusPhysicsLambda01@500k", "data1800PlusPhysicsLambda1@500k", "pressureDataPlusPhysicsLambda01@500k", "pressureDataPlusPhysicsLambda1@500k",
+"data1800PlusPhysicsLambda01@100k2pO@500k", "data1800PlusPhysicsLambda1@100k2pO@500k"]
 
 
-models = ["physicsOnlyFC@500k", "dataOnly1800FC@500k", "data1800PlusPhysicsLambda01FC@500k", "data1800PlusPhysicsLambda1FC@500k",
-"pressureDataPlusPhysicsLambda01FC@500k", "pressureDataPlusPhysicsLambda1FC@500k"] #, "data1800PlusPhysicsLambda1FC@300k2pO@500k"]
+
+# models = ["physicsOnlyFC@500k", "dataOnly1800FC@500k", "data1800PlusPhysicsLambda01FC@500k", "data1800PlusPhysicsLambda1FC@500k",
+# "pressureDataPlusPhysicsLambda01FC@500k", "pressureDataPlusPhysicsLambda1FC@500k"]
+
 
 
 with open(resultsFilePath, "w") as resultsFile:
@@ -42,10 +60,10 @@ with open(resultsFilePath, "w") as resultsFile:
     
     for model in models:
         # if model in dirSkip or "100k" in model.split("@")[-1] or "300k" in model.split("@")[-1] or '300k' in model.split("@")[-2]:
-        if model in dirSkip or "100k" in model.split("@")[-1] or "300k" in model.split("@")[-1]:
+        # if model in dirSkip or "100k" in model.split("@")[-1] or "300k" in model.split("@")[-1]:
         # if model in dirSkip:
             # print("skipping ", model)
-            continue
+            # continue
         print("reading ", model)
         
         log_dir = outputsPath + model
@@ -89,19 +107,21 @@ with open(resultsFilePath, "w") as resultsFile:
                     
                 if 'error_p' in tag:
                     meanL2p += np.array(values)
+                
                     
         meanL2u /= n
         meanL2v /= n
         meanL2p /= n
     
         modelStrSplit = model.split("@")
-                
+            
         if len(modelStrSplit) == 3:
             label = shortNameDict[modelStrSplit[0]] + ", $S_d=$" + modelStrSplit[1].split("k")[0] + "k" #+ shortNameDict[modelStrSplit[1].split("k")[-1]] #+ "@" + modelStrSplit[-1]
         elif len(modelStrSplit) == 2:
             label = shortNameDict[modelStrSplit[0]] #+ "@" + modelStrSplit[-1]
         
         label = label.replace('Fully Connected, ', '').replace('Fully Conn., ', '').replace('Fourier, ', '')
+        
         
         steps = np.array(steps)/1000
         plt.figure(1)
@@ -116,14 +136,15 @@ with open(resultsFilePath, "w") as resultsFile:
     
     for i in range(1,4):
         plt.figure(i)
-        plt.legend()
+        # plt.legend()
         plt.yscale("log")
         plt.xlabel("Step ($x10^3$)")
         plt.ylabel("Mean $L^2$ Error")
         plt.ylim(0.003, 2)
-        
-    pre= 'FC_'
-    # pre= 'F_'
+
+    # pre= 'TEST_'
+    # pre= 'FC_'
+    pre= 'F_'
     
     
     # plt.figure(1)    
@@ -134,8 +155,8 @@ with open(resultsFilePath, "w") as resultsFile:
     # plt.savefig(pre + "L2p" + ".png", dpi = 600, bbox_inches='tight')
     
     plt.figure(1)    
-    plt.savefig(pre + "L2u" + ".svg", format='svg', dpi = 600, bbox_inches='tight')
+    plt.savefig(pre + "L2u" + ".eps", format='eps', dpi = 600, bbox_inches='tight')
     plt.figure(2)    
-    plt.savefig(pre + "L2v" + ".svg", format='svg', dpi = 600, bbox_inches='tight')
+    plt.savefig(pre + "L2v" + ".eps", format='eps', dpi = 600, bbox_inches='tight')
     plt.figure(3)    
-    plt.savefig(pre + "L2p" + ".svg", format='svg', dpi = 600, bbox_inches='tight')
+    plt.savefig(pre + "L2p" + ".eps", format='eps', dpi = 600, bbox_inches='tight')
