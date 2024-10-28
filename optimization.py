@@ -3,7 +3,7 @@ import dill
 import os, glob, io, time
 from os import listdir
 import csv
-from fwdFacingStep import ffs, param_ranges, Re, Ho, Lo
+from fwdFacingStep import ffs, param_ranges, Re, Ho, Lo, Um, rho
 from pymoo.optimize import minimize
 from pymoo.core.problem import Problem
 from pymoo.algorithms.moo.nsga2 import NSGA2
@@ -62,16 +62,7 @@ class modulusOptProblem(Problem):
                 # read downstream pressure
                 objective = "downstreamPressure"
                 DSP = self.readFile(fileDir = self.path_monitors, objective = objective, design = design)
-                valuesF.append(2*(USP-DSP))
-                
-                # # read upstream pressureTot
-                # objective = "upstreamPressureTot"
-                # USPtot = self.readFile(fileDir = self.path_monitors, objective = objective, design = design)
-                # # read downstream pressureTot
-                # objective = "downstreamPressureTot"
-                # DSPtot = self.readFile(fileDir = self.path_monitors, objective = objective, design = design)
-                # valuesF.append(2*(USPtot-DSPtot))
-                
+                valuesF.append(2*(USP-DSP)/(rho*Um**2))
 
             # remove old files
             filePattern = "*.csv"
@@ -87,15 +78,9 @@ class modulusOptProblem(Problem):
                     os.remove(file_path)
 
         out["F"] = np.array(valuesF)
-        # out["F"] = out["F"].reshape(out["F"].shape[0], 1)
-        # print(out["F"].shape)
-        # print(out["F"])
         self.gen += 1
         elapsed_time = time.time() - start_time
         print("Evaluation time: ", elapsed_time)
-
-# xl=np.array([0.25,float(param_ranges[Ho][0])])
-# xu=np.array([0.95,float(param_ranges[Ho][1])])
 
 xl=np.array([float(param_ranges[Lo][0]),float(param_ranges[Ho][0])])
 xu=np.array([float(param_ranges[Lo][1]),float(param_ranges[Ho][1])])
